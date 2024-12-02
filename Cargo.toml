@@ -1,0 +1,19 @@
+[package]
+name = "cyborg-oracle-feeder"
+description = "An oracle feeder, designed to monitor the health of the cyborg edge computing workers, built, among others with Polkadot Sdk. (polkadot v1.13.0)"
+version = "0.1.0"
+edition = "2021"
+license = "Unlicense"
+authors = ["Cyborg Network <https://github.com/Cyborg-Network>"]
+homepage = "https://cyborgnetwork.io/"
+repository = "https://github.com/Cyborg-Network/cyborg-oracle-feeder/"
+publish = false
+
+[dependencies]
+async-trait = "0.1.83"
+clap = { version = "4.5.21", features = ["derive"] }
+rand = "0.8.5"
+reqwest = "0.12.9"
+subxt = "0.38.0"
+subxt-signer = "0.38.0"
+tokio = "1.41.1"
