@@ -8,6 +8,7 @@ use subxt::{
 };
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
+use crate::substrate_interface::api::edge_connect::storage::types::executable_workers;
 use crate::substrate_interface::api::{self as SubstrateApi, runtime_types::{bounded_collections::bounded_vec::BoundedVec, cyborg_primitives::oracle::ProcessStatus}};
 use serde::Deserialize;
 use serde_aux::prelude::deserialize_bool_from_anything;
@@ -71,7 +72,7 @@ impl OracleFeeder for CyborgOracleFeeder {
             println!("Running Oracle Feeder");
             println!("Starting new hour cycle...");
 
-             // Record the starting time of the cycle
+             /* // Record the starting time of the cycle
             let start_time = Instant::now();
             let one_hour = Duration::from_secs(3600);
 
@@ -83,7 +84,9 @@ impl OracleFeeder for CyborgOracleFeeder {
             println!(
                 "Random delay selected: {} minutes. Waiting...",
                 random_delay_minutes
-            );
+            ); */
+
+            let random_delay = Duration::from_secs(30);
 
             sleep(random_delay).await;
 
@@ -91,7 +94,7 @@ impl OracleFeeder for CyborgOracleFeeder {
            
             self.feed().await?;
 
-            // Wait for the remainder of the hour
+/*             // Wait for the remainder of the hour
             let elapsed_time = start_time.elapsed();
             if elapsed_time < one_hour {
                 let remaining_time = one_hour - elapsed_time;
@@ -100,7 +103,7 @@ impl OracleFeeder for CyborgOracleFeeder {
                     remaining_time.as_secs()
                 );
                 sleep(remaining_time).await;
-            }
+            } */
 
             println!("Hour cycle complete. Restarting...");
        } 
@@ -111,18 +114,45 @@ impl OracleFeeder for CyborgOracleFeeder {
     ) -> Result<(), subxt::Error> {
         let mut worker_data: Vec<CyborgWorkerData> = Vec::new();
 
-        let workers_address =
+        let worker_clusters_address =
+            SubstrateApi::storage().edge_connect().worker_clusters_iter();
+        
+        let executable_workers_address =
             SubstrateApi::storage().edge_connect().executable_workers_iter();
         
-        let mut workers_query = self.client
+        let mut worker_clusters_query = self.client
             .storage()
             .at_latest()
             .await?
-            .iter(workers_address)
+            .iter(worker_clusters_address)
             .await?;
 
-        while let Some(Ok(worker)) = workers_query.next().await {
+        let mut executable_workers_query = self.client
+            .storage()
+            .at_latest()
+            .await?
+            .iter(executable_workers_address)
+            .await?;
+
+        println!("Collecting worker data...");
+
+        while let Some(Ok(worker)) = worker_clusters_query.next().await {
             let worker_ip = String::from_utf8_lossy(&worker.value.api.domain.0).to_string();
+
+            println!("Worker IP: {}", worker_ip);
+
+            let process_status = self.get_worker_data(&worker_ip).await;
+
+            worker_data.push((
+                (worker.value.owner, worker.value.id),
+                process_status
+            ));
+        }
+
+        while let Some(Ok(worker)) = executable_workers_query.next().await {
+            let worker_ip = String::from_utf8_lossy(&worker.value.api.domain.0).to_string();
+
+            println!("Worker IP: {}", worker_ip);
 
             let process_status = self.get_worker_data(&worker_ip).await;
 
@@ -141,22 +171,38 @@ impl OracleFeeder for CyborgOracleFeeder {
         &mut self,
         worker_ip: &String,
     ) -> ProcessStatus {
+
+        async fn process_response(response: reqwest::Response) -> Result<WorkerHealthResponse, Box<dyn std::error::Error>> {
+            let response_text = response.text().await?;
+            let worker_health_item = serde_json::from_str::<WorkerHealthResponse>(&response_text)?;
+
+            Ok(worker_health_item)
+        }
                     
         // TODO insert worker ip from worker from list
-        let response = reqwest::get(format!("http://{}:8080/check_health", worker_ip)).await;
+        let response = reqwest::get(format!("http://{}:8080/check-health", worker_ip)).await;
 
         match response {
             Ok(response) => {
-                let worker_health_item = serde_json::from_str::<WorkerHealthResponse>(&response.text().await.unwrap()).unwrap();
-                if worker_health_item.is_active {
-                    ProcessStatus{
-                        online: true,
-                        available: true
-                    }   
+                println!("Response: {:?}", response);
+                if let Ok(worker_health_item) = process_response(response).await {
+                    println!("Worker with ip {} is online: {}", worker_ip, worker_health_item.is_active);
+                    if worker_health_item.is_active {
+                        ProcessStatus{
+                            online: true,
+                            available: true
+                        }   
+                    } else {
+                        ProcessStatus{
+                            online: false,
+                            available: false
+                        }
+                    }
                 } else {
+                    println!("Worker with IP {} returned an error", worker_ip);
                     ProcessStatus{
                         online: false,
-                        available: false
+                        available: false,
                     }
                 }
             },
