@@ -7,10 +7,10 @@ use crate::feeder::CyborgOracleFeeder;
 pub struct NoKeypair;
 pub struct AccountKeypair(SR25519Keypair);
 
-/// A builder pattern for constructing a `CyborgClient` instance.
+/// A builder pattern for constructing a `CyborgOracleFeeder` instance.
 ///
-/// This builder allows for flexible configuration of the Cyborg client,
-/// including setting the node URI, keypair, and IPFS URI.
+/// This builder allows for flexible configuration of the instance,
+/// including setting the parachain URL and the oracle feeder account keypair.
 pub struct CyborgOracleFeederBuilder<Keypair> {
     parachain_url: Option<String>,
     keypair: Keypair,
@@ -30,7 +30,7 @@ impl Default for CyborgOracleFeederBuilder<NoKeypair> {
 }
 
 impl<Keypair> CyborgOracleFeederBuilder<Keypair> {
-    /// Sets the node URI for the client to connect to.
+    /// Sets the parachain URL for the feeder to connect to.
     ///
     /// # Arguments
     /// * `url` - A string representing the WebSocket URL of the node.
@@ -77,82 +77,10 @@ impl CyborgOracleFeederBuilder<AccountKeypair> {
                 Ok(CyborgOracleFeeder {
                     client,
                     keypair: self.keypair.0,
-                    parachain_url: self.parachain_url
-                        .expect("Parachain URL was not set, cannot run feeder without an endpoint connecting it to cyborg network."),
-                    current_workers: None,
+                    current_workers_data: None,
                 })
             }
             None => Err("No node URI provided. Please specify a node URI to connect.".into()),
         }
     }
 }
-
-/*
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use clap::builder;
-    use sp_core::sr25519;
-    use std::error::Error;
-
-    #[tokio::test]
-    async fn test_node_uri() {
-        // Test setting the node URI in the builder.
-        let builder = CyborgClientBuilder::default().node_uri("ws://127.0.0.1:9988".to_string());
-        assert_eq!(builder.node_uri, Some("ws://127.0.0.1:9988".to_string()));
-
-        // Test setting both node URI and keypair.
-        let builder = CyborgClientBuilder::default()
-            .node_uri("ws://127.0.0.1:9988".to_string())
-            .keypair("//Alice");
-
-        assert_eq!(
-            builder.unwrap().node_uri,
-            Some("ws://127.0.0.1:9988".to_string())
-        );
-    }
-
-    #[tokio::test]
-    async fn test_keypair() {
-        // Test setting the keypair in the builder.
-        let builder = CyborgClientBuilder::default()
-            .node_uri("ws://127.0.0.1:9988".to_string())
-            .keypair("//Alice");
-
-        let uri_alice = SecretUri::from_str("//Alice").unwrap();
-        let expected_public_key = SR25519Keypair::from_uri(&uri_alice)
-            .expect("keypair was not set correctly")
-            .public_key();
-        let uri_bob = SecretUri::from_str("//Bob").unwrap();
-        let unexpected_public_key = SR25519Keypair::from_uri(&uri_bob)
-            .expect("keypair was not set correctly")
-            .public_key();
-
-        if let AccountKeypair(keypair) = builder.unwrap().keypair {
-            assert_eq!(keypair.public_key().to_account_id(), expected_public_key.to_account_id());
-        } else {
-            assert_eq!(unexpected_public_key.to_account_id(), expected_public_key.to_account_id());
-        }
-    }
-
-    #[tokio::test]
-    async fn test_ipfs_uri() -> Result<(), Box<dyn Error>> {
-        // Test setting the IPFS URI in the builder.
-        let builder = CyborgClientBuilder::default()
-            .node_uri("ws://127.0.0.1:9944".to_string())
-            .keypair("//Alice")?
-            .ipfs_uri("http://127.0.0.1:5001".to_string());
-
-        assert_eq!(builder.ipfs_uri, Some("http://127.0.0.1:5001".to_string()));
-
-        // Test setting the IPFS URI without a keypair.
-        let builder = CyborgClientBuilder::default()
-            .node_uri("ws://127.0.0.1:9944".to_string())
-            .ipfs_uri("http://127.0.0.1:5001".to_string());
-
-        assert_eq!(builder.ipfs_uri, Some("http://127.0.0.1:5001".to_string()));
-
-        Ok(())
-    }
-}
-*/
