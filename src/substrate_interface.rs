@@ -235,9 +235,9 @@ pub mod api {
             .hash();
         runtime_metadata_hash
             == [
-                246u8, 227u8, 156u8, 136u8, 202u8, 54u8, 152u8, 10u8, 152u8, 66u8, 64u8, 247u8,
-                170u8, 161u8, 26u8, 171u8, 224u8, 105u8, 55u8, 179u8, 217u8, 39u8, 252u8, 210u8,
-                64u8, 112u8, 216u8, 201u8, 217u8, 19u8, 71u8, 84u8,
+                176u8, 75u8, 124u8, 88u8, 195u8, 250u8, 206u8, 213u8, 171u8, 9u8, 16u8, 20u8,
+                188u8, 76u8, 68u8, 192u8, 213u8, 55u8, 1u8, 236u8, 62u8, 170u8, 63u8, 63u8, 255u8,
+                182u8, 106u8, 183u8, 227u8, 20u8, 249u8, 42u8,
             ]
     }
     pub mod system {
@@ -1396,9 +1396,10 @@ pub mod api {
                         "Events",
                         (),
                         [
-                            239u8, 233u8, 154u8, 74u8, 80u8, 27u8, 225u8, 74u8, 51u8, 58u8, 10u8,
-                            246u8, 190u8, 208u8, 87u8, 16u8, 45u8, 34u8, 243u8, 16u8, 135u8, 151u8,
-                            39u8, 4u8, 228u8, 184u8, 208u8, 29u8, 113u8, 201u8, 239u8, 94u8,
+                            113u8, 20u8, 133u8, 103u8, 224u8, 22u8, 195u8, 72u8, 177u8, 17u8,
+                            108u8, 169u8, 151u8, 201u8, 207u8, 97u8, 126u8, 40u8, 123u8, 235u8,
+                            165u8, 45u8, 33u8, 218u8, 173u8, 218u8, 69u8, 42u8, 32u8, 23u8, 248u8,
+                            66u8,
                         ],
                     )
                 }
@@ -4997,10 +4998,10 @@ pub mod api {
                             call: ::subxt::ext::subxt_core::alloc::boxed::Box::new(call),
                         },
                         [
-                            188u8, 246u8, 180u8, 59u8, 156u8, 50u8, 208u8, 224u8, 123u8, 82u8,
-                            183u8, 185u8, 156u8, 57u8, 121u8, 102u8, 143u8, 170u8, 42u8, 161u8,
-                            61u8, 116u8, 136u8, 28u8, 125u8, 52u8, 191u8, 201u8, 211u8, 224u8,
-                            212u8, 124u8,
+                            153u8, 116u8, 85u8, 14u8, 39u8, 97u8, 38u8, 222u8, 142u8, 224u8, 34u8,
+                            197u8, 217u8, 239u8, 186u8, 224u8, 251u8, 66u8, 249u8, 118u8, 204u8,
+                            235u8, 39u8, 179u8, 104u8, 99u8, 210u8, 28u8, 120u8, 73u8, 105u8,
+                            114u8,
                         ],
                     )
                 }
@@ -5023,10 +5024,9 @@ pub mod api {
                             weight,
                         },
                         [
-                            144u8, 149u8, 146u8, 225u8, 14u8, 90u8, 208u8, 49u8, 54u8, 245u8, 15u8,
-                            175u8, 205u8, 221u8, 134u8, 159u8, 96u8, 170u8, 91u8, 107u8, 204u8,
-                            3u8, 227u8, 226u8, 148u8, 165u8, 99u8, 228u8, 200u8, 238u8, 130u8,
-                            10u8,
+                            253u8, 177u8, 70u8, 79u8, 93u8, 239u8, 246u8, 30u8, 23u8, 95u8, 228u8,
+                            185u8, 179u8, 231u8, 179u8, 147u8, 97u8, 53u8, 58u8, 1u8, 153u8, 157u8,
+                            140u8, 253u8, 47u8, 29u8, 238u8, 137u8, 229u8, 53u8, 30u8, 247u8,
                         ],
                     )
                 }
@@ -5066,10 +5066,10 @@ pub mod api {
                             call: ::subxt::ext::subxt_core::alloc::boxed::Box::new(call),
                         },
                         [
-                            59u8, 250u8, 73u8, 236u8, 218u8, 226u8, 213u8, 83u8, 139u8, 108u8,
-                            223u8, 60u8, 151u8, 151u8, 160u8, 12u8, 243u8, 70u8, 41u8, 88u8, 249u8,
-                            130u8, 211u8, 129u8, 120u8, 61u8, 169u8, 227u8, 186u8, 214u8, 243u8,
-                            245u8,
+                            244u8, 217u8, 209u8, 75u8, 17u8, 86u8, 184u8, 74u8, 229u8, 116u8,
+                            210u8, 217u8, 229u8, 129u8, 161u8, 44u8, 100u8, 243u8, 98u8, 84u8,
+                            142u8, 243u8, 49u8, 36u8, 84u8, 107u8, 51u8, 180u8, 154u8, 105u8,
+                            112u8, 194u8,
                         ],
                     )
                 }
@@ -10920,10 +10920,9 @@ pub mod api {
                     use super::runtime_types;
                     pub type Values =
                         runtime_types::bounded_collections::bounded_vec::BoundedVec<(
-                            (
+                            runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
                                 ::subxt::ext::subxt_core::utils::AccountId32,
-                                ::core::primitive::u64,
-                            ),
+                            >,
                             runtime_types::cyborg_primitives::oracle::ProcessStatus,
                         )>;
                 }
@@ -10947,9 +10946,10 @@ pub mod api {
                         "feed_values",
                         types::FeedValues { values },
                         [
-                            178u8, 5u8, 38u8, 243u8, 207u8, 5u8, 228u8, 23u8, 222u8, 231u8, 120u8,
-                            245u8, 147u8, 181u8, 243u8, 107u8, 121u8, 57u8, 50u8, 71u8, 245u8,
-                            241u8, 249u8, 168u8, 8u8, 211u8, 3u8, 53u8, 157u8, 218u8, 90u8, 214u8,
+                            211u8, 85u8, 75u8, 181u8, 67u8, 117u8, 195u8, 238u8, 65u8, 63u8, 53u8,
+                            31u8, 143u8, 193u8, 226u8, 232u8, 141u8, 177u8, 9u8, 89u8, 103u8,
+                            117u8, 137u8, 145u8, 7u8, 216u8, 166u8, 138u8, 156u8, 219u8, 254u8,
+                            142u8,
                         ],
                     )
                 }
@@ -10979,10 +10979,9 @@ pub mod api {
                 use super::runtime_types;
                 pub type Sender = ::subxt::ext::subxt_core::utils::AccountId32;
                 pub type Values = ::subxt::ext::subxt_core::alloc::vec::Vec<(
-                    (
+                    runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
                         ::subxt::ext::subxt_core::utils::AccountId32,
-                        ::core::primitive::u64,
-                    ),
+                    >,
                     runtime_types::cyborg_primitives::oracle::ProcessStatus,
                 )>;
             }
@@ -11002,10 +11001,9 @@ pub mod api {
                         ::core::primitive::u64,
                     >;
                     pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
-                    pub type Param1 = (
+                    pub type Param1 = runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
                         ::subxt::ext::subxt_core::utils::AccountId32,
-                        ::core::primitive::u64,
-                    );
+                    >;
                 }
                 pub mod values {
                     use super::runtime_types;
@@ -11013,8 +11011,9 @@ pub mod api {
                         runtime_types::cyborg_primitives::oracle::ProcessStatus,
                         ::core::primitive::u64,
                     >;
-                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
-                    pub type Param1 = ::core::primitive::u64;
+                    pub type Param0 = runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                        ::subxt::ext::subxt_core::utils::AccountId32,
+                    >;
                 }
                 pub mod has_dispatched {
                     use super::runtime_types;
@@ -11040,10 +11039,9 @@ pub mod api {
                         "RawValues",
                         (),
                         [
-                            208u8, 117u8, 207u8, 123u8, 101u8, 23u8, 126u8, 204u8, 44u8, 90u8,
-                            72u8, 222u8, 186u8, 193u8, 29u8, 155u8, 66u8, 239u8, 3u8, 150u8, 124u8,
-                            169u8, 107u8, 130u8, 29u8, 130u8, 136u8, 226u8, 200u8, 128u8, 17u8,
-                            161u8,
+                            208u8, 195u8, 74u8, 106u8, 3u8, 5u8, 193u8, 189u8, 41u8, 11u8, 110u8,
+                            238u8, 82u8, 93u8, 203u8, 202u8, 123u8, 74u8, 111u8, 34u8, 1u8, 31u8,
+                            48u8, 87u8, 222u8, 68u8, 12u8, 252u8, 254u8, 72u8, 53u8, 238u8,
                         ],
                     )
                 }
@@ -11067,10 +11065,9 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            208u8, 117u8, 207u8, 123u8, 101u8, 23u8, 126u8, 204u8, 44u8, 90u8,
-                            72u8, 222u8, 186u8, 193u8, 29u8, 155u8, 66u8, 239u8, 3u8, 150u8, 124u8,
-                            169u8, 107u8, 130u8, 29u8, 130u8, 136u8, 226u8, 200u8, 128u8, 17u8,
-                            161u8,
+                            208u8, 195u8, 74u8, 106u8, 3u8, 5u8, 193u8, 189u8, 41u8, 11u8, 110u8,
+                            238u8, 82u8, 93u8, 203u8, 202u8, 123u8, 74u8, 111u8, 34u8, 1u8, 31u8,
+                            48u8, 87u8, 222u8, 68u8, 12u8, 252u8, 254u8, 72u8, 53u8, 238u8,
                         ],
                     )
                 }
@@ -11105,10 +11102,9 @@ pub mod api {
                             ),
                         ),
                         [
-                            208u8, 117u8, 207u8, 123u8, 101u8, 23u8, 126u8, 204u8, 44u8, 90u8,
-                            72u8, 222u8, 186u8, 193u8, 29u8, 155u8, 66u8, 239u8, 3u8, 150u8, 124u8,
-                            169u8, 107u8, 130u8, 29u8, 130u8, 136u8, 226u8, 200u8, 128u8, 17u8,
-                            161u8,
+                            208u8, 195u8, 74u8, 106u8, 3u8, 5u8, 193u8, 189u8, 41u8, 11u8, 110u8,
+                            238u8, 82u8, 93u8, 203u8, 202u8, 123u8, 74u8, 111u8, 34u8, 1u8, 31u8,
+                            48u8, 87u8, 222u8, 68u8, 12u8, 252u8, 254u8, 72u8, 53u8, 238u8,
                         ],
                     )
                 }
@@ -11127,14 +11123,14 @@ pub mod api {
                         "Values",
                         (),
                         [
-                            248u8, 159u8, 209u8, 235u8, 18u8, 164u8, 201u8, 51u8, 235u8, 187u8,
-                            126u8, 29u8, 72u8, 18u8, 233u8, 173u8, 136u8, 5u8, 143u8, 187u8, 5u8,
-                            190u8, 10u8, 65u8, 196u8, 67u8, 118u8, 224u8, 170u8, 20u8, 69u8, 224u8,
+                            76u8, 118u8, 45u8, 252u8, 101u8, 21u8, 118u8, 219u8, 8u8, 13u8, 26u8,
+                            87u8, 110u8, 103u8, 129u8, 88u8, 62u8, 96u8, 5u8, 179u8, 95u8, 243u8,
+                            109u8, 165u8, 208u8, 154u8, 228u8, 41u8, 181u8, 40u8, 195u8, 14u8,
                         ],
                     )
                 }
                 #[doc = " Up to date combined value from Raw Values"]
-                pub fn values_iter1(
+                pub fn values(
                     &self,
                     _0: impl ::core::borrow::Borrow<types::values::Param0>,
                 ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
@@ -11142,9 +11138,9 @@ pub mod api {
                         types::values::Param0,
                     >,
                     types::values::Values,
-                    (),
-                    (),
                     ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                    (),
                 > {
                     ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
                         "Oracle",
@@ -11153,46 +11149,9 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            248u8, 159u8, 209u8, 235u8, 18u8, 164u8, 201u8, 51u8, 235u8, 187u8,
-                            126u8, 29u8, 72u8, 18u8, 233u8, 173u8, 136u8, 5u8, 143u8, 187u8, 5u8,
-                            190u8, 10u8, 65u8, 196u8, 67u8, 118u8, 224u8, 170u8, 20u8, 69u8, 224u8,
-                        ],
-                    )
-                }
-                #[doc = " Up to date combined value from Raw Values"]
-                pub fn values(
-                    &self,
-                    _0: impl ::core::borrow::Borrow<types::values::Param0>,
-                    _1: impl ::core::borrow::Borrow<types::values::Param1>,
-                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
-                    (
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                            types::values::Param0,
-                        >,
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                            types::values::Param1,
-                        >,
-                    ),
-                    types::values::Values,
-                    ::subxt::ext::subxt_core::utils::Yes,
-                    (),
-                    (),
-                > {
-                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
-                        "Oracle",
-                        "Values",
-                        (
-                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                                _0.borrow(),
-                            ),
-                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                                _1.borrow(),
-                            ),
-                        ),
-                        [
-                            248u8, 159u8, 209u8, 235u8, 18u8, 164u8, 201u8, 51u8, 235u8, 187u8,
-                            126u8, 29u8, 72u8, 18u8, 233u8, 173u8, 136u8, 5u8, 143u8, 187u8, 5u8,
-                            190u8, 10u8, 65u8, 196u8, 67u8, 118u8, 224u8, 170u8, 20u8, 69u8, 224u8,
+                            76u8, 118u8, 45u8, 252u8, 101u8, 21u8, 118u8, 219u8, 8u8, 13u8, 26u8,
+                            87u8, 110u8, 103u8, 129u8, 88u8, 62u8, 96u8, 5u8, 179u8, 95u8, 243u8,
+                            109u8, 165u8, 208u8, 154u8, 228u8, 41u8, 181u8, 40u8, 195u8, 14u8,
                         ],
                     )
                 }
@@ -11904,13 +11863,13 @@ pub mod api {
                 )]
                 #[doc = "Remove a worker from storage an deactivates it"]
                 pub struct RemoveWorker {
-                    pub worker_id: remove_worker::WorkerId,
                     pub worker_type: remove_worker::WorkerType,
+                    pub worker_id: remove_worker::WorkerId,
                 }
                 pub mod remove_worker {
                     use super::runtime_types;
-                    pub type WorkerId = ::core::primitive::u64;
                     pub type WorkerType = runtime_types::cyborg_primitives::worker::WorkerType;
+                    pub type WorkerId = ::core::primitive::u64;
                 }
                 impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for RemoveWorker {
                     const PALLET: &'static str = "EdgeConnect";
@@ -11933,11 +11892,13 @@ pub mod api {
                 )]
                 #[doc = "Switches the visibility of a worker between active and inactive."]
                 pub struct ToggleWorkerVisibility {
+                    pub worker_type: toggle_worker_visibility::WorkerType,
                     pub worker_id: toggle_worker_visibility::WorkerId,
                     pub visibility: toggle_worker_visibility::Visibility,
                 }
                 pub mod toggle_worker_visibility {
                     use super::runtime_types;
+                    pub type WorkerType = runtime_types::cyborg_primitives::worker::WorkerType;
                     pub type WorkerId = ::core::primitive::u64;
                     pub type Visibility = ::core::primitive::bool;
                 }
@@ -11982,16 +11943,16 @@ pub mod api {
                 #[doc = "Remove a worker from storage an deactivates it"]
                 pub fn remove_worker(
                     &self,
-                    worker_id: types::remove_worker::WorkerId,
                     worker_type: types::remove_worker::WorkerType,
+                    worker_id: types::remove_worker::WorkerId,
                 ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::RemoveWorker>
                 {
                     ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
                         "EdgeConnect",
                         "remove_worker",
                         types::RemoveWorker {
-                            worker_id,
                             worker_type,
+                            worker_id,
                         },
                         [
                             88u8, 199u8, 100u8, 78u8, 120u8, 225u8, 43u8, 249u8, 85u8, 9u8, 187u8,
@@ -12003,6 +11964,7 @@ pub mod api {
                 #[doc = "Switches the visibility of a worker between active and inactive."]
                 pub fn toggle_worker_visibility(
                     &self,
+                    worker_type: types::toggle_worker_visibility::WorkerType,
                     worker_id: types::toggle_worker_visibility::WorkerId,
                     visibility: types::toggle_worker_visibility::Visibility,
                 ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<
@@ -12012,14 +11974,14 @@ pub mod api {
                         "EdgeConnect",
                         "toggle_worker_visibility",
                         types::ToggleWorkerVisibility {
+                            worker_type,
                             worker_id,
                             visibility,
                         },
                         [
-                            223u8, 254u8, 203u8, 97u8, 96u8, 112u8, 17u8, 196u8, 200u8, 29u8, 84u8,
-                            178u8, 114u8, 178u8, 200u8, 69u8, 153u8, 99u8, 55u8, 105u8, 209u8,
-                            30u8, 254u8, 145u8, 71u8, 212u8, 195u8, 128u8, 147u8, 161u8, 59u8,
-                            253u8,
+                            94u8, 104u8, 211u8, 45u8, 9u8, 15u8, 102u8, 90u8, 42u8, 155u8, 235u8,
+                            154u8, 51u8, 135u8, 201u8, 81u8, 40u8, 47u8, 73u8, 246u8, 60u8, 173u8,
+                            240u8, 255u8, 89u8, 246u8, 68u8, 218u8, 234u8, 35u8, 229u8, 209u8,
                         ],
                     )
                 }
@@ -13212,17 +13174,17 @@ pub mod api {
                                 ::core::primitive::u32,
                             >,
                         >;
-                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
-                    pub type Param1 = ::core::primitive::u64;
+                    pub type Param0 = runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                        ::subxt::ext::subxt_core::utils::AccountId32,
+                    >;
                 }
                 pub mod submitted_per_period {
                     use super::runtime_types;
                     pub type SubmittedPerPeriod = ::core::primitive::bool;
                     pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
-                    pub type Param1 = (
+                    pub type Param1 = runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
                         ::subxt::ext::subxt_core::utils::AccountId32,
-                        ::core::primitive::u64,
-                    );
+                    >;
                 }
                 pub mod resulting_worker_status_percentages {
                     use super::runtime_types;
@@ -13230,15 +13192,17 @@ pub mod api {
                         runtime_types::pallet_status_aggregator::ProcessStatusPercentages<
                             ::core::primitive::u32,
                         >;
-                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
-                    pub type Param1 = ::core::primitive::u64;
+                    pub type Param0 = runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                        ::subxt::ext::subxt_core::utils::AccountId32,
+                    >;
                 }
                 pub mod resulting_worker_status {
                     use super::runtime_types;
                     pub type ResultingWorkerStatus =
                         runtime_types::cyborg_primitives::oracle::ProcessStatus;
-                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
-                    pub type Param1 = ::core::primitive::u64;
+                    pub type Param0 = runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                        ::subxt::ext::subxt_core::utils::AccountId32,
+                    >;
                 }
             }
             pub struct StorageApi;
@@ -13285,40 +13249,9 @@ pub mod api {
                         "WorkerStatusEntriesPerPeriod",
                         (),
                         [
-                            125u8, 35u8, 173u8, 69u8, 254u8, 201u8, 49u8, 53u8, 252u8, 19u8, 132u8,
-                            23u8, 52u8, 123u8, 6u8, 246u8, 111u8, 191u8, 144u8, 88u8, 55u8, 25u8,
-                            143u8, 113u8, 167u8, 185u8, 84u8, 165u8, 108u8, 221u8, 228u8, 108u8,
-                        ],
-                    )
-                }
-                #[doc = " Stores the status entries (online/offline, available/unavailable) for each worker over a specific period."]
-                #[doc = " The status is provided by different oracle feeders, and the data is collected and aggregated to calculate"]
-                #[doc = " the overall status for each worker."]
-                #[doc = ""]
-                #[doc = " - The storage key is a tuple of `(T::AccountId, WorkerId)`, which uniquely identifies the worker."]
-                #[doc = " - The value is a bounded vector of `StatusInstance`, which contains the worker's status over time."]
-                pub fn worker_status_entries_per_period_iter1(
-                    &self,
-                    _0: impl ::core::borrow::Borrow<types::worker_status_entries_per_period::Param0>,
-                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
-                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                        types::worker_status_entries_per_period::Param0,
-                    >,
-                    types::worker_status_entries_per_period::WorkerStatusEntriesPerPeriod,
-                    (),
-                    ::subxt::ext::subxt_core::utils::Yes,
-                    ::subxt::ext::subxt_core::utils::Yes,
-                > {
-                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
-                        "StatusAggregator",
-                        "WorkerStatusEntriesPerPeriod",
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                            _0.borrow(),
-                        ),
-                        [
-                            125u8, 35u8, 173u8, 69u8, 254u8, 201u8, 49u8, 53u8, 252u8, 19u8, 132u8,
-                            23u8, 52u8, 123u8, 6u8, 246u8, 111u8, 191u8, 144u8, 88u8, 55u8, 25u8,
-                            143u8, 113u8, 167u8, 185u8, 84u8, 165u8, 108u8, 221u8, 228u8, 108u8,
+                            252u8, 244u8, 26u8, 170u8, 193u8, 128u8, 203u8, 88u8, 106u8, 172u8,
+                            38u8, 97u8, 48u8, 244u8, 5u8, 204u8, 145u8, 62u8, 231u8, 170u8, 141u8,
+                            36u8, 22u8, 26u8, 198u8, 136u8, 129u8, 95u8, 36u8, 163u8, 204u8, 27u8,
                         ],
                     )
                 }
@@ -13331,16 +13264,10 @@ pub mod api {
                 pub fn worker_status_entries_per_period(
                     &self,
                     _0: impl ::core::borrow::Borrow<types::worker_status_entries_per_period::Param0>,
-                    _1: impl ::core::borrow::Borrow<types::worker_status_entries_per_period::Param1>,
                 ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
-                    (
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                            types::worker_status_entries_per_period::Param0,
-                        >,
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                            types::worker_status_entries_per_period::Param1,
-                        >,
-                    ),
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::worker_status_entries_per_period::Param0,
+                    >,
                     types::worker_status_entries_per_period::WorkerStatusEntriesPerPeriod,
                     ::subxt::ext::subxt_core::utils::Yes,
                     ::subxt::ext::subxt_core::utils::Yes,
@@ -13349,25 +13276,20 @@ pub mod api {
                     ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
                         "StatusAggregator",
                         "WorkerStatusEntriesPerPeriod",
-                        (
-                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                                _0.borrow(),
-                            ),
-                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                                _1.borrow(),
-                            ),
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
                         ),
                         [
-                            125u8, 35u8, 173u8, 69u8, 254u8, 201u8, 49u8, 53u8, 252u8, 19u8, 132u8,
-                            23u8, 52u8, 123u8, 6u8, 246u8, 111u8, 191u8, 144u8, 88u8, 55u8, 25u8,
-                            143u8, 113u8, 167u8, 185u8, 84u8, 165u8, 108u8, 221u8, 228u8, 108u8,
+                            252u8, 244u8, 26u8, 170u8, 193u8, 128u8, 203u8, 88u8, 106u8, 172u8,
+                            38u8, 97u8, 48u8, 244u8, 5u8, 204u8, 145u8, 62u8, 231u8, 170u8, 141u8,
+                            36u8, 22u8, 26u8, 198u8, 136u8, 129u8, 95u8, 36u8, 163u8, 204u8, 27u8,
                         ],
                     )
                 }
                 #[doc = " Tracks whether a specific oracle provider has submitted worker status data during the current period."]
                 #[doc = " This is used to prevent multiple submissions from the same oracle provider within a period."]
                 #[doc = ""]
-                #[doc = " - The key is a tuple of the oracle provider's account and the worker `(T::AccountId, (T::AccountId, WorkerId))`."]
+                #[doc = " - The key is a tuple of the oracle provider's account and required worker info `(T::AccountId, OracleWorkerFormat)`."]
                 #[doc = " - The value is a boolean indicating whether the oracle has already submitted data."]
                 pub fn submitted_per_period_iter(
                     &self,
@@ -13383,17 +13305,17 @@ pub mod api {
                         "SubmittedPerPeriod",
                         (),
                         [
-                            112u8, 129u8, 239u8, 88u8, 175u8, 33u8, 46u8, 167u8, 99u8, 189u8,
-                            181u8, 183u8, 169u8, 112u8, 252u8, 117u8, 191u8, 238u8, 78u8, 25u8,
-                            210u8, 238u8, 60u8, 45u8, 216u8, 143u8, 204u8, 181u8, 70u8, 86u8,
-                            167u8, 39u8,
+                            99u8, 135u8, 18u8, 164u8, 50u8, 158u8, 250u8, 144u8, 116u8, 28u8, 56u8,
+                            138u8, 233u8, 79u8, 120u8, 186u8, 58u8, 166u8, 176u8, 218u8, 253u8,
+                            88u8, 192u8, 147u8, 238u8, 110u8, 151u8, 119u8, 20u8, 160u8, 132u8,
+                            110u8,
                         ],
                     )
                 }
                 #[doc = " Tracks whether a specific oracle provider has submitted worker status data during the current period."]
                 #[doc = " This is used to prevent multiple submissions from the same oracle provider within a period."]
                 #[doc = ""]
-                #[doc = " - The key is a tuple of the oracle provider's account and the worker `(T::AccountId, (T::AccountId, WorkerId))`."]
+                #[doc = " - The key is a tuple of the oracle provider's account and required worker info `(T::AccountId, OracleWorkerFormat)`."]
                 #[doc = " - The value is a boolean indicating whether the oracle has already submitted data."]
                 pub fn submitted_per_period_iter1(
                     &self,
@@ -13414,17 +13336,17 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            112u8, 129u8, 239u8, 88u8, 175u8, 33u8, 46u8, 167u8, 99u8, 189u8,
-                            181u8, 183u8, 169u8, 112u8, 252u8, 117u8, 191u8, 238u8, 78u8, 25u8,
-                            210u8, 238u8, 60u8, 45u8, 216u8, 143u8, 204u8, 181u8, 70u8, 86u8,
-                            167u8, 39u8,
+                            99u8, 135u8, 18u8, 164u8, 50u8, 158u8, 250u8, 144u8, 116u8, 28u8, 56u8,
+                            138u8, 233u8, 79u8, 120u8, 186u8, 58u8, 166u8, 176u8, 218u8, 253u8,
+                            88u8, 192u8, 147u8, 238u8, 110u8, 151u8, 119u8, 20u8, 160u8, 132u8,
+                            110u8,
                         ],
                     )
                 }
                 #[doc = " Tracks whether a specific oracle provider has submitted worker status data during the current period."]
                 #[doc = " This is used to prevent multiple submissions from the same oracle provider within a period."]
                 #[doc = ""]
-                #[doc = " - The key is a tuple of the oracle provider's account and the worker `(T::AccountId, (T::AccountId, WorkerId))`."]
+                #[doc = " - The key is a tuple of the oracle provider's account and required worker info `(T::AccountId, OracleWorkerFormat)`."]
                 #[doc = " - The value is a boolean indicating whether the oracle has already submitted data."]
                 pub fn submitted_per_period(
                     &self,
@@ -13456,10 +13378,10 @@ pub mod api {
                             ),
                         ),
                         [
-                            112u8, 129u8, 239u8, 88u8, 175u8, 33u8, 46u8, 167u8, 99u8, 189u8,
-                            181u8, 183u8, 169u8, 112u8, 252u8, 117u8, 191u8, 238u8, 78u8, 25u8,
-                            210u8, 238u8, 60u8, 45u8, 216u8, 143u8, 204u8, 181u8, 70u8, 86u8,
-                            167u8, 39u8,
+                            99u8, 135u8, 18u8, 164u8, 50u8, 158u8, 250u8, 144u8, 116u8, 28u8, 56u8,
+                            138u8, 233u8, 79u8, 120u8, 186u8, 58u8, 166u8, 176u8, 218u8, 253u8,
+                            88u8, 192u8, 147u8, 238u8, 110u8, 151u8, 119u8, 20u8, 160u8, 132u8,
+                            110u8,
                         ],
                     )
                 }
@@ -13483,40 +13405,9 @@ pub mod api {
                         "ResultingWorkerStatusPercentages",
                         (),
                         [
-                            189u8, 12u8, 214u8, 195u8, 105u8, 164u8, 124u8, 31u8, 50u8, 190u8,
-                            90u8, 95u8, 15u8, 103u8, 34u8, 17u8, 11u8, 196u8, 169u8, 207u8, 39u8,
-                            94u8, 165u8, 199u8, 129u8, 14u8, 183u8, 137u8, 235u8, 0u8, 233u8, 61u8,
-                        ],
-                    )
-                }
-                #[doc = " Stores the resulting percentage status (online and available) for each worker after aggregation."]
-                #[doc = " This is calculated by taking the status data submitted during the period and determining the"]
-                #[doc = " percentage of time the worker was online and available."]
-                #[doc = ""]
-                #[doc = " - The key is `(T::AccountId, WorkerId)`, representing the worker."]
-                #[doc = " - The value is `ProcessStatusPercentages`, which contains the percentages and the block number of the last processed status."]
-                pub fn resulting_worker_status_percentages_iter1(
-                    &self,
-                    _0: impl ::core::borrow::Borrow<types::resulting_worker_status_percentages::Param0>,
-                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
-                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                        types::resulting_worker_status_percentages::Param0,
-                    >,
-                    types::resulting_worker_status_percentages::ResultingWorkerStatusPercentages,
-                    (),
-                    ::subxt::ext::subxt_core::utils::Yes,
-                    ::subxt::ext::subxt_core::utils::Yes,
-                > {
-                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
-                        "StatusAggregator",
-                        "ResultingWorkerStatusPercentages",
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                            _0.borrow(),
-                        ),
-                        [
-                            189u8, 12u8, 214u8, 195u8, 105u8, 164u8, 124u8, 31u8, 50u8, 190u8,
-                            90u8, 95u8, 15u8, 103u8, 34u8, 17u8, 11u8, 196u8, 169u8, 207u8, 39u8,
-                            94u8, 165u8, 199u8, 129u8, 14u8, 183u8, 137u8, 235u8, 0u8, 233u8, 61u8,
+                            13u8, 55u8, 108u8, 50u8, 114u8, 224u8, 30u8, 31u8, 27u8, 164u8, 226u8,
+                            70u8, 129u8, 255u8, 200u8, 122u8, 6u8, 109u8, 8u8, 125u8, 247u8, 223u8,
+                            222u8, 199u8, 55u8, 106u8, 61u8, 169u8, 93u8, 173u8, 40u8, 110u8,
                         ],
                     )
                 }
@@ -13529,16 +13420,10 @@ pub mod api {
                 pub fn resulting_worker_status_percentages(
                     &self,
                     _0: impl ::core::borrow::Borrow<types::resulting_worker_status_percentages::Param0>,
-                    _1: impl ::core::borrow::Borrow<types::resulting_worker_status_percentages::Param1>,
                 ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
-                    (
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                            types::resulting_worker_status_percentages::Param0,
-                        >,
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                            types::resulting_worker_status_percentages::Param1,
-                        >,
-                    ),
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::resulting_worker_status_percentages::Param0,
+                    >,
                     types::resulting_worker_status_percentages::ResultingWorkerStatusPercentages,
                     ::subxt::ext::subxt_core::utils::Yes,
                     ::subxt::ext::subxt_core::utils::Yes,
@@ -13547,18 +13432,13 @@ pub mod api {
                     ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
                         "StatusAggregator",
                         "ResultingWorkerStatusPercentages",
-                        (
-                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                                _0.borrow(),
-                            ),
-                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                                _1.borrow(),
-                            ),
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
                         ),
                         [
-                            189u8, 12u8, 214u8, 195u8, 105u8, 164u8, 124u8, 31u8, 50u8, 190u8,
-                            90u8, 95u8, 15u8, 103u8, 34u8, 17u8, 11u8, 196u8, 169u8, 207u8, 39u8,
-                            94u8, 165u8, 199u8, 129u8, 14u8, 183u8, 137u8, 235u8, 0u8, 233u8, 61u8,
+                            13u8, 55u8, 108u8, 50u8, 114u8, 224u8, 30u8, 31u8, 27u8, 164u8, 226u8,
+                            70u8, 129u8, 255u8, 200u8, 122u8, 6u8, 109u8, 8u8, 125u8, 247u8, 223u8,
+                            222u8, 199u8, 55u8, 106u8, 61u8, 169u8, 93u8, 173u8, 40u8, 110u8,
                         ],
                     )
                 }
@@ -13581,41 +13461,10 @@ pub mod api {
                         "ResultingWorkerStatus",
                         (),
                         [
-                            10u8, 199u8, 157u8, 48u8, 141u8, 103u8, 65u8, 126u8, 171u8, 34u8,
-                            222u8, 63u8, 192u8, 188u8, 154u8, 56u8, 4u8, 194u8, 215u8, 224u8,
-                            214u8, 234u8, 45u8, 2u8, 139u8, 39u8, 58u8, 6u8, 160u8, 248u8, 112u8,
-                            204u8,
-                        ],
-                    )
-                }
-                #[doc = " Stores the final status (online/offline and available/unavailable) for each worker based on the percentage thresholds."]
-                #[doc = " The final status is determined based on the configured threshold values for uptime."]
-                #[doc = ""]
-                #[doc = " - The key is `(T::AccountId, WorkerId)`, representing the worker."]
-                #[doc = " - The value is `ProcessStatus`, which contains the final online and available status for the worker."]
-                pub fn resulting_worker_status_iter1(
-                    &self,
-                    _0: impl ::core::borrow::Borrow<types::resulting_worker_status::Param0>,
-                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
-                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                        types::resulting_worker_status::Param0,
-                    >,
-                    types::resulting_worker_status::ResultingWorkerStatus,
-                    (),
-                    ::subxt::ext::subxt_core::utils::Yes,
-                    ::subxt::ext::subxt_core::utils::Yes,
-                > {
-                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
-                        "StatusAggregator",
-                        "ResultingWorkerStatus",
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                            _0.borrow(),
-                        ),
-                        [
-                            10u8, 199u8, 157u8, 48u8, 141u8, 103u8, 65u8, 126u8, 171u8, 34u8,
-                            222u8, 63u8, 192u8, 188u8, 154u8, 56u8, 4u8, 194u8, 215u8, 224u8,
-                            214u8, 234u8, 45u8, 2u8, 139u8, 39u8, 58u8, 6u8, 160u8, 248u8, 112u8,
-                            204u8,
+                            171u8, 155u8, 124u8, 169u8, 169u8, 5u8, 165u8, 70u8, 97u8, 98u8, 155u8,
+                            155u8, 54u8, 232u8, 171u8, 20u8, 233u8, 55u8, 129u8, 56u8, 192u8,
+                            226u8, 31u8, 38u8, 246u8, 91u8, 100u8, 115u8, 198u8, 149u8, 196u8,
+                            23u8,
                         ],
                     )
                 }
@@ -13627,16 +13476,10 @@ pub mod api {
                 pub fn resulting_worker_status(
                     &self,
                     _0: impl ::core::borrow::Borrow<types::resulting_worker_status::Param0>,
-                    _1: impl ::core::borrow::Borrow<types::resulting_worker_status::Param1>,
                 ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
-                    (
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                            types::resulting_worker_status::Param0,
-                        >,
-                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                            types::resulting_worker_status::Param1,
-                        >,
-                    ),
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::resulting_worker_status::Param0,
+                    >,
                     types::resulting_worker_status::ResultingWorkerStatus,
                     ::subxt::ext::subxt_core::utils::Yes,
                     ::subxt::ext::subxt_core::utils::Yes,
@@ -13645,19 +13488,14 @@ pub mod api {
                     ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
                         "StatusAggregator",
                         "ResultingWorkerStatus",
-                        (
-                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                                _0.borrow(),
-                            ),
-                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
-                                _1.borrow(),
-                            ),
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
                         ),
                         [
-                            10u8, 199u8, 157u8, 48u8, 141u8, 103u8, 65u8, 126u8, 171u8, 34u8,
-                            222u8, 63u8, 192u8, 188u8, 154u8, 56u8, 4u8, 194u8, 215u8, 224u8,
-                            214u8, 234u8, 45u8, 2u8, 139u8, 39u8, 58u8, 6u8, 160u8, 248u8, 112u8,
-                            204u8,
+                            171u8, 155u8, 124u8, 169u8, 169u8, 5u8, 165u8, 70u8, 97u8, 98u8, 155u8,
+                            155u8, 54u8, 232u8, 171u8, 20u8, 233u8, 55u8, 129u8, 56u8, 192u8,
+                            226u8, 31u8, 38u8, 246u8, 91u8, 100u8, 115u8, 198u8, 149u8, 196u8,
+                            23u8,
                         ],
                     )
                 }
@@ -15157,6 +14995,25 @@ pub mod api {
                 #[encode_as_type(
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
+                pub struct OracleWorkerFormat<_0> {
+                    pub id: (_0, ::core::primitive::u64),
+                    pub worker_type: runtime_types::cyborg_primitives::worker::WorkerType,
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
                 pub struct ProcessStatus {
                     pub online: ::core::primitive::bool,
                     pub available: ::core::primitive::bool,
@@ -16336,10 +16193,9 @@ pub mod api {
                     #[doc = "Require authorized operator."]
                     feed_values {
                         values: runtime_types::bounded_collections::bounded_vec::BoundedVec<(
-                            (
+                            runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
                                 ::subxt::ext::subxt_core::utils::AccountId32,
-                                ::core::primitive::u64,
-                            ),
+                            >,
                             runtime_types::cyborg_primitives::oracle::ProcessStatus,
                         )>,
                     },
@@ -16390,10 +16246,9 @@ pub mod api {
                     NewFeedData {
                         sender: ::subxt::ext::subxt_core::utils::AccountId32,
                         values: ::subxt::ext::subxt_core::alloc::vec::Vec<(
-                            (
+                            runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
                                 ::subxt::ext::subxt_core::utils::AccountId32,
-                                ::core::primitive::u64,
-                            ),
+                            >,
                             runtime_types::cyborg_primitives::oracle::ProcessStatus,
                         )>,
                     },
@@ -17254,12 +17109,13 @@ pub mod api {
                     #[codec(index = 1)]
                     #[doc = "Remove a worker from storage an deactivates it"]
                     remove_worker {
-                        worker_id: ::core::primitive::u64,
                         worker_type: runtime_types::cyborg_primitives::worker::WorkerType,
+                        worker_id: ::core::primitive::u64,
                     },
                     #[codec(index = 2)]
                     #[doc = "Switches the visibility of a worker between active and inactive."]
                     toggle_worker_visibility {
+                        worker_type: runtime_types::cyborg_primitives::worker::WorkerType,
                         worker_id: ::core::primitive::u64,
                         visibility: ::core::primitive::bool,
                     },

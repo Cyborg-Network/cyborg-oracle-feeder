@@ -9,7 +9,13 @@ use subxt::{
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
 use crate::substrate_interface::api::edge_connect::storage::types::executable_workers;
-use crate::substrate_interface::api::{self as SubstrateApi, runtime_types::{bounded_collections::bounded_vec::BoundedVec, cyborg_primitives::oracle::ProcessStatus}};
+use crate::substrate_interface::api::{
+    self as SubstrateApi, 
+    runtime_types::{
+        bounded_collections::bounded_vec::BoundedVec, 
+        cyborg_primitives::{worker::WorkerType, oracle::{ProcessStatus, OracleWorkerFormat}}
+    }
+};
 use serde::Deserialize;
 use serde_aux::prelude::deserialize_bool_from_anything;
 
@@ -28,8 +34,25 @@ impl Clone for ProcessStatus {
         }
     }
 }
+impl Clone for WorkerType {
+    fn clone(&self) -> Self {
+        match self {
+            WorkerType::Docker => WorkerType::Docker,
+            WorkerType::Executable => WorkerType::Executable,
+        }
+    }
+}
+impl Clone for OracleWorkerFormat<AccountId32> {
+    fn clone(&self) -> Self {
+        OracleWorkerFormat{
+            id: self.id.clone(), 
+            worker_type: self.worker_type.clone(),
+        }
+    }
+}
 
-type CyborgWorkerData = ((AccountId32, u64), ProcessStatus);
+
+type CyborgWorkerData = (OracleWorkerFormat<AccountId32>, ProcessStatus);
 
 #[derive(Deserialize)]
 struct WorkerHealthResponse {
@@ -144,7 +167,10 @@ impl OracleFeeder for CyborgOracleFeeder {
             let process_status = self.get_worker_data(&worker_ip).await;
 
             worker_data.push((
-                (worker.value.owner, worker.value.id),
+                OracleWorkerFormat{
+                    id: (worker.value.owner, worker.value.id),
+                    worker_type: WorkerType::Docker,
+                },
                 process_status
             ));
         }
@@ -157,7 +183,10 @@ impl OracleFeeder for CyborgOracleFeeder {
             let process_status = self.get_worker_data(&worker_ip).await;
 
             worker_data.push((
-                (worker.value.owner, worker.value.id),
+                OracleWorkerFormat{
+                    id: (worker.value.owner, worker.value.id),
+                    worker_type: WorkerType::Executable,
+                },
                 process_status
             ));
         }
