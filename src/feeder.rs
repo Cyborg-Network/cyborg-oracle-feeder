@@ -203,6 +203,7 @@ impl OracleFeeder for CyborgOracleFeeder {
 
         async fn process_response(response: reqwest::Response) -> Result<WorkerHealthResponse, Box<dyn std::error::Error>> {
             let response_text = response.text().await?;
+            println!("Response text: {}", response_text);
             let worker_health_item = serde_json::from_str::<WorkerHealthResponse>(&response_text)?;
 
             Ok(worker_health_item)
