@@ -1,10 +1,10 @@
-FROM rust:slim
+FROM rust:slim as builder
 
 LABEL maintainer="tom@cyborgnetwork.io"
 LABEL description="Demo container for the Cyborg Oracle Feeder"
 
-WORKDIR /root
-COPY . /root
+WORKDIR /app
+COPY . /app
 
 RUN apt-get update && apt-get install -y \
     sudo \
@@ -24,7 +24,21 @@ RUN apt-get update && apt-get install -y \
 
 RUN cargo build --release
 
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y \
+    bash \
+    libssl3 \
+    libffi-dev \
+    libzmq3-dev \
+    && apt-get clean
+
+
+WORKDIR /app
+
+COPY --from=builder /app/target/release/cyborg-oracle-feeder .
+
 ENV PARACHAIN_URL=
 ENV ACCOUNT_SEED=
 
-CMD /bin/bash -c "./target/release/cyborg-oracle-feeder start --parachain-url $PARACHAIN_URL --account-seed '$ACCOUNT_SEED'"
+CMD /bin/bash -c "./cyborg-oracle-feeder start --parachain-url $PARACHAIN_URL --account-seed '$ACCOUNT_SEED'"

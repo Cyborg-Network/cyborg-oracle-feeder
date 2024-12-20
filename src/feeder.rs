@@ -109,13 +109,14 @@ impl OracleFeeder for CyborgOracleFeeder {
                 random_delay_minutes
             ); */
 
+            // This delay is only for testing and will be replaced by the one that's commented out
             let random_delay = Duration::from_secs(30);
 
             sleep(random_delay).await;
 
             self.collect_worker_data().await?;
            
-            self.feed().await?;
+            self.feed().await.unwrap_or_else(|e| println!("Failed to feed the oracle due to error: {e}. retrying in next cycle."));
 
 /*             // Wait for the remainder of the hour
             let elapsed_time = start_time.elapsed();
@@ -261,7 +262,7 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             println!("Feed Oracle Parameters: {:?}", feed_oracle_tx.call_data());
 
-            let feed_oracle_events = self.client
+            let _ = self.client
                 .tx()
                 .sign_and_submit_then_watch_default(&feed_oracle_tx, &self.keypair)
                 .await
@@ -271,14 +272,6 @@ impl OracleFeeder for CyborgOracleFeeder {
                 })?
                 .wait_for_finalized_success()
                 .await?;
-
-            let feed_event = 
-                feed_oracle_events.find_first::<SubstrateApi::task_management::events::SubmittedCompletedTask>()?;
-            if let Some(event) = feed_event {
-                println!("Oracle fed successfully: {event:?}");
-            } else {
-                println!("Failed find event corresponding to feeding process.");
-            }
 
             Ok(())
         } else {
