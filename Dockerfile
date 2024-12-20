@@ -38,7 +38,7 @@ WORKDIR /app
 
 COPY --from=builder /app/target/release/cyborg-oracle-feeder .
 
-ENV PARACHAIN_URL=
-ENV ACCOUNT_SEED=
+ENV PARACHAIN_URL=ws://127.0.0.1:9988
+ENV ACCOUNT_SEED="//Eve"
 
 CMD /bin/bash -c "./cyborg-oracle-feeder start --parachain-url $PARACHAIN_URL --account-seed '$ACCOUNT_SEED'"

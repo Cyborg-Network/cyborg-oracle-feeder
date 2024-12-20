@@ -1,5 +1,6 @@
 use subxt_signer::sr25519::Keypair;
 use tokio::time::{sleep, Instant, Duration};
+use reqwest::Client;
 use async_trait::async_trait;
 use subxt::{
     utils::AccountId32,
@@ -210,8 +211,12 @@ impl OracleFeeder for CyborgOracleFeeder {
             Ok(worker_health_item)
         }
                     
-        // TODO insert worker ip from worker from list
-        let response = reqwest::get(format!("http://{}:8080/check-health", worker_ip)).await;
+        let client = Client::new();
+        let response = client
+            .get(format!("http://{}:8080/check-health", worker_ip))
+            .timeout(Duration::from_secs(5))
+            .send()
+            .await;
 
         match response {
             Ok(response) => {
