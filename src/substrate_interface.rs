@@ -6,7 +6,7 @@ pub mod api {
     mod root_mod {
         pub use super::*;
     }
-    pub static PALLETS: [&str; 23usize] = [
+    pub static PALLETS: [&str; 24usize] = [
         "System",
         "ParachainSystem",
         "Timestamp",
@@ -30,6 +30,7 @@ pub mod api {
         "StatusAggregator",
         "Payment",
         "ZKVerifier",
+        "NeuroZk",
     ];
     pub static RUNTIME_APIS: [&str; 0usize] = [];
     #[doc = r" The error type that is returned when there is a runtime issue."]
@@ -98,6 +99,9 @@ pub mod api {
         }
         pub fn zk_verifier(&self) -> zk_verifier::constants::ConstantsApi {
             zk_verifier::constants::ConstantsApi
+        }
+        pub fn neuro_zk(&self) -> neuro_zk::constants::ConstantsApi {
+            neuro_zk::constants::ConstantsApi
         }
     }
     pub struct StorageApi;
@@ -168,6 +172,9 @@ pub mod api {
         pub fn zk_verifier(&self) -> zk_verifier::storage::StorageApi {
             zk_verifier::storage::StorageApi
         }
+        pub fn neuro_zk(&self) -> neuro_zk::storage::StorageApi {
+            neuro_zk::storage::StorageApi
+        }
     }
     pub struct TransactionApi;
     impl TransactionApi {
@@ -225,6 +232,9 @@ pub mod api {
         pub fn zk_verifier(&self) -> zk_verifier::calls::TransactionApi {
             zk_verifier::calls::TransactionApi
         }
+        pub fn neuro_zk(&self) -> neuro_zk::calls::TransactionApi {
+            neuro_zk::calls::TransactionApi
+        }
     }
     #[doc = r" check whether the metadata provided is aligned with this statically generated code."]
     pub fn is_codegen_valid_for(metadata: &::subxt::ext::subxt_core::Metadata) -> bool {
@@ -235,9 +245,9 @@ pub mod api {
             .hash();
         runtime_metadata_hash
             == [
-                176u8, 75u8, 124u8, 88u8, 195u8, 250u8, 206u8, 213u8, 171u8, 9u8, 16u8, 20u8,
-                188u8, 76u8, 68u8, 192u8, 213u8, 55u8, 1u8, 236u8, 62u8, 170u8, 63u8, 63u8, 255u8,
-                182u8, 106u8, 183u8, 227u8, 20u8, 249u8, 42u8,
+                3u8, 204u8, 102u8, 170u8, 202u8, 86u8, 60u8, 42u8, 147u8, 82u8, 241u8, 210u8, 87u8,
+                205u8, 86u8, 229u8, 220u8, 123u8, 194u8, 198u8, 48u8, 45u8, 167u8, 228u8, 108u8,
+                233u8, 95u8, 126u8, 60u8, 40u8, 225u8, 171u8,
             ]
     }
     pub mod system {
@@ -1396,10 +1406,9 @@ pub mod api {
                         "Events",
                         (),
                         [
-                            113u8, 20u8, 133u8, 103u8, 224u8, 22u8, 195u8, 72u8, 177u8, 17u8,
-                            108u8, 169u8, 151u8, 201u8, 207u8, 97u8, 126u8, 40u8, 123u8, 235u8,
-                            165u8, 45u8, 33u8, 218u8, 173u8, 218u8, 69u8, 42u8, 32u8, 23u8, 248u8,
-                            66u8,
+                            191u8, 24u8, 237u8, 222u8, 43u8, 99u8, 95u8, 76u8, 37u8, 12u8, 226u8,
+                            78u8, 60u8, 130u8, 97u8, 182u8, 9u8, 188u8, 92u8, 31u8, 170u8, 203u8,
+                            95u8, 13u8, 212u8, 29u8, 106u8, 112u8, 222u8, 67u8, 164u8, 87u8,
                         ],
                     )
                 }
@@ -4998,10 +5007,9 @@ pub mod api {
                             call: ::subxt::ext::subxt_core::alloc::boxed::Box::new(call),
                         },
                         [
-                            153u8, 116u8, 85u8, 14u8, 39u8, 97u8, 38u8, 222u8, 142u8, 224u8, 34u8,
-                            197u8, 217u8, 239u8, 186u8, 224u8, 251u8, 66u8, 249u8, 118u8, 204u8,
-                            235u8, 39u8, 179u8, 104u8, 99u8, 210u8, 28u8, 120u8, 73u8, 105u8,
-                            114u8,
+                            171u8, 88u8, 225u8, 79u8, 121u8, 119u8, 61u8, 16u8, 45u8, 95u8, 75u8,
+                            42u8, 62u8, 153u8, 203u8, 74u8, 18u8, 112u8, 46u8, 42u8, 126u8, 151u8,
+                            45u8, 150u8, 82u8, 102u8, 106u8, 154u8, 194u8, 150u8, 159u8, 70u8,
                         ],
                     )
                 }
@@ -5024,9 +5032,10 @@ pub mod api {
                             weight,
                         },
                         [
-                            253u8, 177u8, 70u8, 79u8, 93u8, 239u8, 246u8, 30u8, 23u8, 95u8, 228u8,
-                            185u8, 179u8, 231u8, 179u8, 147u8, 97u8, 53u8, 58u8, 1u8, 153u8, 157u8,
-                            140u8, 253u8, 47u8, 29u8, 238u8, 137u8, 229u8, 53u8, 30u8, 247u8,
+                            131u8, 253u8, 144u8, 170u8, 249u8, 186u8, 157u8, 134u8, 42u8, 103u8,
+                            227u8, 226u8, 221u8, 118u8, 119u8, 30u8, 248u8, 30u8, 32u8, 25u8,
+                            237u8, 248u8, 99u8, 157u8, 175u8, 28u8, 232u8, 117u8, 96u8, 131u8,
+                            226u8, 189u8,
                         ],
                     )
                 }
@@ -5066,10 +5075,9 @@ pub mod api {
                             call: ::subxt::ext::subxt_core::alloc::boxed::Box::new(call),
                         },
                         [
-                            244u8, 217u8, 209u8, 75u8, 17u8, 86u8, 184u8, 74u8, 229u8, 116u8,
-                            210u8, 217u8, 229u8, 129u8, 161u8, 44u8, 100u8, 243u8, 98u8, 84u8,
-                            142u8, 243u8, 49u8, 36u8, 84u8, 107u8, 51u8, 180u8, 154u8, 105u8,
-                            112u8, 194u8,
+                            161u8, 72u8, 14u8, 96u8, 209u8, 87u8, 46u8, 71u8, 87u8, 23u8, 53u8,
+                            96u8, 97u8, 91u8, 253u8, 81u8, 52u8, 206u8, 219u8, 26u8, 102u8, 80u8,
+                            165u8, 174u8, 71u8, 124u8, 39u8, 201u8, 124u8, 183u8, 168u8, 96u8,
                         ],
                     )
                 }
@@ -10920,10 +10928,10 @@ pub mod api {
                     use super::runtime_types;
                     pub type Values =
                         runtime_types::bounded_collections::bounded_vec::BoundedVec<(
-                            runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                            runtime_types::cyborg_primitives::oracle::OracleKey<
                                 ::subxt::ext::subxt_core::utils::AccountId32,
                             >,
-                            runtime_types::cyborg_primitives::oracle::ProcessStatus,
+                            runtime_types::cyborg_primitives::oracle::OracleValue,
                         )>;
                 }
                 impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for FeedValues {
@@ -10946,10 +10954,10 @@ pub mod api {
                         "feed_values",
                         types::FeedValues { values },
                         [
-                            211u8, 85u8, 75u8, 181u8, 67u8, 117u8, 195u8, 238u8, 65u8, 63u8, 53u8,
-                            31u8, 143u8, 193u8, 226u8, 232u8, 141u8, 177u8, 9u8, 89u8, 103u8,
-                            117u8, 137u8, 145u8, 7u8, 216u8, 166u8, 138u8, 156u8, 219u8, 254u8,
-                            142u8,
+                            104u8, 239u8, 31u8, 26u8, 244u8, 144u8, 194u8, 239u8, 143u8, 98u8,
+                            64u8, 234u8, 8u8, 119u8, 173u8, 208u8, 21u8, 180u8, 234u8, 250u8,
+                            218u8, 94u8, 64u8, 255u8, 136u8, 96u8, 153u8, 131u8, 14u8, 141u8, 94u8,
+                            70u8,
                         ],
                     )
                 }
@@ -10979,10 +10987,10 @@ pub mod api {
                 use super::runtime_types;
                 pub type Sender = ::subxt::ext::subxt_core::utils::AccountId32;
                 pub type Values = ::subxt::ext::subxt_core::alloc::vec::Vec<(
-                    runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                    runtime_types::cyborg_primitives::oracle::OracleKey<
                         ::subxt::ext::subxt_core::utils::AccountId32,
                     >,
-                    runtime_types::cyborg_primitives::oracle::ProcessStatus,
+                    runtime_types::cyborg_primitives::oracle::OracleValue,
                 )>;
             }
             impl ::subxt::ext::subxt_core::events::StaticEvent for NewFeedData {
@@ -10997,21 +11005,21 @@ pub mod api {
                 pub mod raw_values {
                     use super::runtime_types;
                     pub type RawValues = runtime_types::orml_oracle::module::TimestampedValue<
-                        runtime_types::cyborg_primitives::oracle::ProcessStatus,
+                        runtime_types::cyborg_primitives::oracle::OracleValue,
                         ::core::primitive::u64,
                     >;
                     pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
-                    pub type Param1 = runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                    pub type Param1 = runtime_types::cyborg_primitives::oracle::OracleKey<
                         ::subxt::ext::subxt_core::utils::AccountId32,
                     >;
                 }
                 pub mod values {
                     use super::runtime_types;
                     pub type Values = runtime_types::orml_oracle::module::TimestampedValue<
-                        runtime_types::cyborg_primitives::oracle::ProcessStatus,
+                        runtime_types::cyborg_primitives::oracle::OracleValue,
                         ::core::primitive::u64,
                     >;
-                    pub type Param0 = runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                    pub type Param0 = runtime_types::cyborg_primitives::oracle::OracleKey<
                         ::subxt::ext::subxt_core::utils::AccountId32,
                     >;
                 }
@@ -11039,9 +11047,10 @@ pub mod api {
                         "RawValues",
                         (),
                         [
-                            208u8, 195u8, 74u8, 106u8, 3u8, 5u8, 193u8, 189u8, 41u8, 11u8, 110u8,
-                            238u8, 82u8, 93u8, 203u8, 202u8, 123u8, 74u8, 111u8, 34u8, 1u8, 31u8,
-                            48u8, 87u8, 222u8, 68u8, 12u8, 252u8, 254u8, 72u8, 53u8, 238u8,
+                            162u8, 193u8, 254u8, 182u8, 182u8, 192u8, 88u8, 254u8, 210u8, 109u8,
+                            20u8, 102u8, 144u8, 184u8, 226u8, 59u8, 17u8, 79u8, 131u8, 125u8,
+                            161u8, 208u8, 69u8, 213u8, 235u8, 142u8, 186u8, 119u8, 205u8, 232u8,
+                            183u8, 248u8,
                         ],
                     )
                 }
@@ -11065,9 +11074,10 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            208u8, 195u8, 74u8, 106u8, 3u8, 5u8, 193u8, 189u8, 41u8, 11u8, 110u8,
-                            238u8, 82u8, 93u8, 203u8, 202u8, 123u8, 74u8, 111u8, 34u8, 1u8, 31u8,
-                            48u8, 87u8, 222u8, 68u8, 12u8, 252u8, 254u8, 72u8, 53u8, 238u8,
+                            162u8, 193u8, 254u8, 182u8, 182u8, 192u8, 88u8, 254u8, 210u8, 109u8,
+                            20u8, 102u8, 144u8, 184u8, 226u8, 59u8, 17u8, 79u8, 131u8, 125u8,
+                            161u8, 208u8, 69u8, 213u8, 235u8, 142u8, 186u8, 119u8, 205u8, 232u8,
+                            183u8, 248u8,
                         ],
                     )
                 }
@@ -11102,9 +11112,10 @@ pub mod api {
                             ),
                         ),
                         [
-                            208u8, 195u8, 74u8, 106u8, 3u8, 5u8, 193u8, 189u8, 41u8, 11u8, 110u8,
-                            238u8, 82u8, 93u8, 203u8, 202u8, 123u8, 74u8, 111u8, 34u8, 1u8, 31u8,
-                            48u8, 87u8, 222u8, 68u8, 12u8, 252u8, 254u8, 72u8, 53u8, 238u8,
+                            162u8, 193u8, 254u8, 182u8, 182u8, 192u8, 88u8, 254u8, 210u8, 109u8,
+                            20u8, 102u8, 144u8, 184u8, 226u8, 59u8, 17u8, 79u8, 131u8, 125u8,
+                            161u8, 208u8, 69u8, 213u8, 235u8, 142u8, 186u8, 119u8, 205u8, 232u8,
+                            183u8, 248u8,
                         ],
                     )
                 }
@@ -11123,9 +11134,10 @@ pub mod api {
                         "Values",
                         (),
                         [
-                            76u8, 118u8, 45u8, 252u8, 101u8, 21u8, 118u8, 219u8, 8u8, 13u8, 26u8,
-                            87u8, 110u8, 103u8, 129u8, 88u8, 62u8, 96u8, 5u8, 179u8, 95u8, 243u8,
-                            109u8, 165u8, 208u8, 154u8, 228u8, 41u8, 181u8, 40u8, 195u8, 14u8,
+                            84u8, 248u8, 242u8, 84u8, 105u8, 144u8, 225u8, 115u8, 151u8, 114u8,
+                            112u8, 241u8, 81u8, 59u8, 133u8, 42u8, 235u8, 10u8, 95u8, 154u8, 230u8,
+                            41u8, 125u8, 101u8, 175u8, 166u8, 77u8, 246u8, 70u8, 227u8, 244u8,
+                            243u8,
                         ],
                     )
                 }
@@ -11149,9 +11161,10 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            76u8, 118u8, 45u8, 252u8, 101u8, 21u8, 118u8, 219u8, 8u8, 13u8, 26u8,
-                            87u8, 110u8, 103u8, 129u8, 88u8, 62u8, 96u8, 5u8, 179u8, 95u8, 243u8,
-                            109u8, 165u8, 208u8, 154u8, 228u8, 41u8, 181u8, 40u8, 195u8, 14u8,
+                            84u8, 248u8, 242u8, 84u8, 105u8, 144u8, 225u8, 115u8, 151u8, 114u8,
+                            112u8, 241u8, 81u8, 59u8, 133u8, 42u8, 235u8, 10u8, 95u8, 154u8, 230u8,
+                            41u8, 125u8, 101u8, 175u8, 166u8, 77u8, 246u8, 70u8, 227u8, 244u8,
+                            243u8,
                         ],
                     )
                 }
@@ -11906,6 +11919,40 @@ pub mod api {
                     const PALLET: &'static str = "EdgeConnect";
                     const CALL: &'static str = "toggle_worker_visibility";
                 }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub struct PenalizeWorker {
+                    pub worker_owner: penalize_worker::WorkerOwner,
+                    pub worker_id: penalize_worker::WorkerId,
+                    pub worker_type: penalize_worker::WorkerType,
+                    pub penalty: penalize_worker::Penalty,
+                    pub reason: penalize_worker::Reason,
+                }
+                pub mod penalize_worker {
+                    use super::runtime_types;
+                    pub type WorkerOwner = ::subxt::ext::subxt_core::utils::AccountId32;
+                    pub type WorkerId = ::core::primitive::u64;
+                    pub type WorkerType = runtime_types::cyborg_primitives::worker::WorkerType;
+                    pub type Penalty = ::core::primitive::i32;
+                    pub type Reason = runtime_types::pallet_edge_connect::pallet::PenaltyReason;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for PenalizeWorker {
+                    const PALLET: &'static str = "EdgeConnect";
+                    const CALL: &'static str = "penalize_worker";
+                }
             }
             pub struct TransactionApi;
             impl TransactionApi {
@@ -11982,6 +12029,32 @@ pub mod api {
                             94u8, 104u8, 211u8, 45u8, 9u8, 15u8, 102u8, 90u8, 42u8, 155u8, 235u8,
                             154u8, 51u8, 135u8, 201u8, 81u8, 40u8, 47u8, 73u8, 246u8, 60u8, 173u8,
                             240u8, 255u8, 89u8, 246u8, 68u8, 218u8, 234u8, 35u8, 229u8, 209u8,
+                        ],
+                    )
+                }
+                pub fn penalize_worker(
+                    &self,
+                    worker_owner: types::penalize_worker::WorkerOwner,
+                    worker_id: types::penalize_worker::WorkerId,
+                    worker_type: types::penalize_worker::WorkerType,
+                    penalty: types::penalize_worker::Penalty,
+                    reason: types::penalize_worker::Reason,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::PenalizeWorker>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "EdgeConnect",
+                        "penalize_worker",
+                        types::PenalizeWorker {
+                            worker_owner,
+                            worker_id,
+                            worker_type,
+                            penalty,
+                            reason,
+                        },
+                        [
+                            125u8, 109u8, 252u8, 224u8, 235u8, 242u8, 18u8, 4u8, 165u8, 184u8,
+                            44u8, 128u8, 22u8, 94u8, 174u8, 16u8, 45u8, 126u8, 187u8, 180u8, 48u8,
+                            28u8, 15u8, 207u8, 146u8, 86u8, 124u8, 184u8, 125u8, 80u8, 76u8, 188u8,
                         ],
                     )
                 }
@@ -12087,6 +12160,64 @@ pub mod api {
                 const PALLET: &'static str = "EdgeConnect";
                 const EVENT: &'static str = "WorkerStatusUpdated";
             }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            #[doc = "Event emitted when a worker is penalized"]
+            pub struct WorkerPenalized {
+                pub worker: worker_penalized::Worker,
+                pub penalty: worker_penalized::Penalty,
+                pub reason: worker_penalized::Reason,
+            }
+            pub mod worker_penalized {
+                use super::runtime_types;
+                pub type Worker = (
+                    ::subxt::ext::subxt_core::utils::AccountId32,
+                    ::core::primitive::u64,
+                );
+                pub type Penalty = ::core::primitive::i32;
+                pub type Reason = runtime_types::pallet_edge_connect::pallet::PenaltyReason;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for WorkerPenalized {
+                const PALLET: &'static str = "EdgeConnect";
+                const EVENT: &'static str = "WorkerPenalized";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            #[doc = "Event emitted when a worker is suspended"]
+            pub struct WorkerSuspended {
+                pub worker: worker_suspended::Worker,
+                pub until_block: worker_suspended::UntilBlock,
+            }
+            pub mod worker_suspended {
+                use super::runtime_types;
+                pub type Worker = (
+                    ::subxt::ext::subxt_core::utils::AccountId32,
+                    ::core::primitive::u64,
+                );
+                pub type UntilBlock = ::core::primitive::u32;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for WorkerSuspended {
+                const PALLET: &'static str = "EdgeConnect";
+                const EVENT: &'static str = "WorkerSuspended";
+            }
         }
         pub mod storage {
             use super::runtime_types;
@@ -12186,10 +12317,10 @@ pub mod api {
                         "WorkerClusters",
                         (),
                         [
-                            41u8, 165u8, 156u8, 49u8, 93u8, 140u8, 227u8, 98u8, 59u8, 170u8, 147u8,
-                            189u8, 217u8, 207u8, 237u8, 195u8, 151u8, 143u8, 252u8, 237u8, 10u8,
-                            150u8, 159u8, 157u8, 34u8, 137u8, 167u8, 242u8, 9u8, 13u8, 192u8,
-                            203u8,
+                            254u8, 181u8, 94u8, 166u8, 80u8, 93u8, 168u8, 158u8, 240u8, 181u8,
+                            104u8, 174u8, 111u8, 85u8, 129u8, 64u8, 147u8, 43u8, 0u8, 35u8, 69u8,
+                            63u8, 41u8, 124u8, 133u8, 223u8, 107u8, 79u8, 74u8, 246u8, 243u8,
+                            115u8,
                         ],
                     )
                 }
@@ -12213,10 +12344,10 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            41u8, 165u8, 156u8, 49u8, 93u8, 140u8, 227u8, 98u8, 59u8, 170u8, 147u8,
-                            189u8, 217u8, 207u8, 237u8, 195u8, 151u8, 143u8, 252u8, 237u8, 10u8,
-                            150u8, 159u8, 157u8, 34u8, 137u8, 167u8, 242u8, 9u8, 13u8, 192u8,
-                            203u8,
+                            254u8, 181u8, 94u8, 166u8, 80u8, 93u8, 168u8, 158u8, 240u8, 181u8,
+                            104u8, 174u8, 111u8, 85u8, 129u8, 64u8, 147u8, 43u8, 0u8, 35u8, 69u8,
+                            63u8, 41u8, 124u8, 133u8, 223u8, 107u8, 79u8, 74u8, 246u8, 243u8,
+                            115u8,
                         ],
                     )
                 }
@@ -12251,10 +12382,10 @@ pub mod api {
                             ),
                         ),
                         [
-                            41u8, 165u8, 156u8, 49u8, 93u8, 140u8, 227u8, 98u8, 59u8, 170u8, 147u8,
-                            189u8, 217u8, 207u8, 237u8, 195u8, 151u8, 143u8, 252u8, 237u8, 10u8,
-                            150u8, 159u8, 157u8, 34u8, 137u8, 167u8, 242u8, 9u8, 13u8, 192u8,
-                            203u8,
+                            254u8, 181u8, 94u8, 166u8, 80u8, 93u8, 168u8, 158u8, 240u8, 181u8,
+                            104u8, 174u8, 111u8, 85u8, 129u8, 64u8, 147u8, 43u8, 0u8, 35u8, 69u8,
+                            63u8, 41u8, 124u8, 133u8, 223u8, 107u8, 79u8, 74u8, 246u8, 243u8,
+                            115u8,
                         ],
                     )
                 }
@@ -12273,9 +12404,10 @@ pub mod api {
                         "ExecutableWorkers",
                         (),
                         [
-                            52u8, 96u8, 231u8, 114u8, 117u8, 224u8, 44u8, 236u8, 30u8, 48u8, 212u8,
-                            198u8, 40u8, 123u8, 22u8, 182u8, 175u8, 51u8, 247u8, 13u8, 160u8, 98u8,
-                            102u8, 35u8, 241u8, 3u8, 182u8, 188u8, 38u8, 42u8, 0u8, 107u8,
+                            137u8, 33u8, 255u8, 46u8, 108u8, 203u8, 232u8, 143u8, 163u8, 228u8,
+                            220u8, 84u8, 18u8, 59u8, 34u8, 35u8, 170u8, 252u8, 104u8, 196u8, 25u8,
+                            150u8, 204u8, 206u8, 57u8, 241u8, 127u8, 139u8, 97u8, 34u8, 250u8,
+                            48u8,
                         ],
                     )
                 }
@@ -12299,9 +12431,10 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            52u8, 96u8, 231u8, 114u8, 117u8, 224u8, 44u8, 236u8, 30u8, 48u8, 212u8,
-                            198u8, 40u8, 123u8, 22u8, 182u8, 175u8, 51u8, 247u8, 13u8, 160u8, 98u8,
-                            102u8, 35u8, 241u8, 3u8, 182u8, 188u8, 38u8, 42u8, 0u8, 107u8,
+                            137u8, 33u8, 255u8, 46u8, 108u8, 203u8, 232u8, 143u8, 163u8, 228u8,
+                            220u8, 84u8, 18u8, 59u8, 34u8, 35u8, 170u8, 252u8, 104u8, 196u8, 25u8,
+                            150u8, 204u8, 206u8, 57u8, 241u8, 127u8, 139u8, 97u8, 34u8, 250u8,
+                            48u8,
                         ],
                     )
                 }
@@ -12336,9 +12469,10 @@ pub mod api {
                             ),
                         ),
                         [
-                            52u8, 96u8, 231u8, 114u8, 117u8, 224u8, 44u8, 236u8, 30u8, 48u8, 212u8,
-                            198u8, 40u8, 123u8, 22u8, 182u8, 175u8, 51u8, 247u8, 13u8, 160u8, 98u8,
-                            102u8, 35u8, 241u8, 3u8, 182u8, 188u8, 38u8, 42u8, 0u8, 107u8,
+                            137u8, 33u8, 255u8, 46u8, 108u8, 203u8, 232u8, 143u8, 163u8, 228u8,
+                            220u8, 84u8, 18u8, 59u8, 34u8, 35u8, 170u8, 252u8, 104u8, 196u8, 25u8,
+                            150u8, 204u8, 206u8, 57u8, 241u8, 127u8, 139u8, 97u8, 34u8, 250u8,
+                            48u8,
                         ],
                     )
                 }
@@ -12375,24 +12509,24 @@ pub mod api {
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
                 #[doc = "Creates a new task and assigns it to a randomly selected worker."]
+                #[doc = "None -> Assigned"]
                 pub struct TaskScheduler {
-                    pub task_type: task_scheduler::TaskType,
-                    pub task_data: task_scheduler::TaskData,
-                    pub zk_files_cid: task_scheduler::ZkFilesCid,
+                    pub task_kind: task_scheduler::TaskKind,
+                    pub task_location: task_scheduler::TaskLocation,
+                    pub nzk_info: task_scheduler::NzkInfo,
                     pub worker_owner: task_scheduler::WorkerOwner,
                     pub worker_id: task_scheduler::WorkerId,
                     pub compute_hours_deposit: task_scheduler::ComputeHoursDeposit,
                 }
                 pub mod task_scheduler {
                     use super::runtime_types;
-                    pub type TaskType = runtime_types::cyborg_primitives::task::TaskType;
-                    pub type TaskData = runtime_types::bounded_collections::bounded_vec::BoundedVec<
-                        ::core::primitive::u8,
-                    >;
-                    pub type ZkFilesCid = ::core::option::Option<
+                    pub type TaskKind = runtime_types::cyborg_primitives::task::TaskKind;
+                    pub type TaskLocation =
                         runtime_types::bounded_collections::bounded_vec::BoundedVec<
                             ::core::primitive::u8,
-                        >,
+                        >;
+                    pub type NzkInfo = ::core::option::Option<
+                        runtime_types::cyborg_primitives::task::NeuroZkTaskSubmissionDetails,
                     >;
                     pub type WorkerOwner = ::subxt::ext::subxt_core::utils::AccountId32;
                     pub type WorkerId = ::core::primitive::u64;
@@ -12417,23 +12551,20 @@ pub mod api {
                 #[encode_as_type(
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
-                #[doc = "Allows a worker to submit a completed task for verification by a verifier."]
-                pub struct SubmitCompletedTask {
-                    pub task_id: submit_completed_task::TaskId,
-                    pub completed_hash: submit_completed_task::CompletedHash,
-                    pub result: submit_completed_task::Result,
+                #[doc = "Miner confirms that it has gathered the data and is starting task execution."]
+                #[doc = ""]
+                #[doc = "Allowed only if task is still `Assigned`."]
+                #[doc = "Changes task state to `Running` and starts aggregation of resource usage."]
+                pub struct ConfirmTaskReception {
+                    pub task_id: confirm_task_reception::TaskId,
                 }
-                pub mod submit_completed_task {
+                pub mod confirm_task_reception {
                     use super::runtime_types;
                     pub type TaskId = ::core::primitive::u64;
-                    pub type CompletedHash = ::subxt::ext::subxt_core::utils::H256;
-                    pub type Result = runtime_types::bounded_collections::bounded_vec::BoundedVec<
-                        ::core::primitive::u8,
-                    >;
                 }
-                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for SubmitCompletedTask {
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for ConfirmTaskReception {
                     const PALLET: &'static str = "TaskManagement";
-                    const CALL: &'static str = "submit_completed_task";
+                    const CALL: &'static str = "confirm_task_reception";
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -12450,20 +12581,19 @@ pub mod api {
                 #[encode_as_type(
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
-                #[doc = "Verifies whether the submitted completed task is correct."]
-                #[doc = "If verification fails, a new resolver is assigned to review the task."]
-                pub struct VerifyCompletedTask {
-                    pub task_id: verify_completed_task::TaskId,
-                    pub completed_hash: verify_completed_task::CompletedHash,
+                #[doc = "signals the miner to exit task execution and reset itself"]
+                #[doc = "Admin will make status to stopped"]
+                #[doc = "RUnning -> Stopped"]
+                pub struct StopTaskAndVacateMiner {
+                    pub task_id: stop_task_and_vacate_miner::TaskId,
                 }
-                pub mod verify_completed_task {
+                pub mod stop_task_and_vacate_miner {
                     use super::runtime_types;
                     pub type TaskId = ::core::primitive::u64;
-                    pub type CompletedHash = ::subxt::ext::subxt_core::utils::H256;
                 }
-                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for VerifyCompletedTask {
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for StopTaskAndVacateMiner {
                     const PALLET: &'static str = "TaskManagement";
-                    const CALL: &'static str = "verify_completed_task";
+                    const CALL: &'static str = "stop_task_and_vacate_miner";
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -12480,29 +12610,55 @@ pub mod api {
                 #[encode_as_type(
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
-                #[doc = "Resolver finalizes the verification of a task in case of disputes."]
-                pub struct ResolveCompletedTask {
-                    pub task_id: resolve_completed_task::TaskId,
-                    pub completed_hash: resolve_completed_task::CompletedHash,
+                #[doc = "miner confirms that it has reset itself"]
+                #[doc = "Stopped to vacated"]
+                pub struct ConfirmMinerVacation {
+                    pub task_id: confirm_miner_vacation::TaskId,
                 }
-                pub mod resolve_completed_task {
+                pub mod confirm_miner_vacation {
                     use super::runtime_types;
                     pub type TaskId = ::core::primitive::u64;
-                    pub type CompletedHash = ::subxt::ext::subxt_core::utils::H256;
                 }
-                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for ResolveCompletedTask {
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for ConfirmMinerVacation {
                     const PALLET: &'static str = "TaskManagement";
-                    const CALL: &'static str = "resolve_completed_task";
+                    const CALL: &'static str = "confirm_miner_vacation";
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub struct SetGatekeeper {
+                    pub new_gatekeeper: set_gatekeeper::NewGatekeeper,
+                }
+                pub mod set_gatekeeper {
+                    use super::runtime_types;
+                    pub type NewGatekeeper = ::subxt::ext::subxt_core::utils::AccountId32;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for SetGatekeeper {
+                    const PALLET: &'static str = "TaskManagement";
+                    const CALL: &'static str = "set_gatekeeper";
                 }
             }
             pub struct TransactionApi;
             impl TransactionApi {
                 #[doc = "Creates a new task and assigns it to a randomly selected worker."]
+                #[doc = "None -> Assigned"]
                 pub fn task_scheduler(
                     &self,
-                    task_type: types::task_scheduler::TaskType,
-                    task_data: types::task_scheduler::TaskData,
-                    zk_files_cid: types::task_scheduler::ZkFilesCid,
+                    task_kind: types::task_scheduler::TaskKind,
+                    task_location: types::task_scheduler::TaskLocation,
+                    nzk_info: types::task_scheduler::NzkInfo,
                     worker_owner: types::task_scheduler::WorkerOwner,
                     worker_id: types::task_scheduler::WorkerId,
                     compute_hours_deposit: types::task_scheduler::ComputeHoursDeposit,
@@ -12512,85 +12668,91 @@ pub mod api {
                         "TaskManagement",
                         "task_scheduler",
                         types::TaskScheduler {
-                            task_type,
-                            task_data,
-                            zk_files_cid,
+                            task_kind,
+                            task_location,
+                            nzk_info,
                             worker_owner,
                             worker_id,
                             compute_hours_deposit,
                         },
                         [
-                            19u8, 117u8, 54u8, 46u8, 115u8, 8u8, 174u8, 243u8, 140u8, 242u8, 183u8,
-                            211u8, 142u8, 122u8, 187u8, 39u8, 87u8, 215u8, 100u8, 12u8, 45u8,
-                            230u8, 197u8, 207u8, 186u8, 236u8, 35u8, 129u8, 176u8, 94u8, 108u8,
-                            127u8,
+                            221u8, 197u8, 71u8, 82u8, 163u8, 207u8, 116u8, 117u8, 50u8, 86u8, 34u8,
+                            159u8, 87u8, 94u8, 189u8, 121u8, 224u8, 109u8, 155u8, 251u8, 190u8,
+                            29u8, 16u8, 147u8, 140u8, 41u8, 142u8, 122u8, 60u8, 253u8, 34u8, 200u8,
                         ],
                     )
                 }
-                #[doc = "Allows a worker to submit a completed task for verification by a verifier."]
-                pub fn submit_completed_task(
+                #[doc = "Miner confirms that it has gathered the data and is starting task execution."]
+                #[doc = ""]
+                #[doc = "Allowed only if task is still `Assigned`."]
+                #[doc = "Changes task state to `Running` and starts aggregation of resource usage."]
+                pub fn confirm_task_reception(
                     &self,
-                    task_id: types::submit_completed_task::TaskId,
-                    completed_hash: types::submit_completed_task::CompletedHash,
-                    result: types::submit_completed_task::Result,
-                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::SubmitCompletedTask>
+                    task_id: types::confirm_task_reception::TaskId,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::ConfirmTaskReception>
                 {
                     ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
                         "TaskManagement",
-                        "submit_completed_task",
-                        types::SubmitCompletedTask {
-                            task_id,
-                            completed_hash,
-                            result,
-                        },
+                        "confirm_task_reception",
+                        types::ConfirmTaskReception { task_id },
                         [
-                            129u8, 95u8, 87u8, 46u8, 216u8, 46u8, 251u8, 143u8, 58u8, 183u8, 96u8,
-                            248u8, 236u8, 192u8, 252u8, 80u8, 23u8, 247u8, 238u8, 190u8, 150u8,
-                            147u8, 181u8, 240u8, 17u8, 151u8, 72u8, 30u8, 238u8, 25u8, 19u8, 124u8,
+                            178u8, 50u8, 114u8, 243u8, 98u8, 204u8, 29u8, 9u8, 135u8, 139u8, 212u8,
+                            35u8, 222u8, 243u8, 140u8, 67u8, 47u8, 212u8, 89u8, 177u8, 169u8, 25u8,
+                            21u8, 121u8, 2u8, 34u8, 198u8, 109u8, 74u8, 179u8, 152u8, 171u8,
                         ],
                     )
                 }
-                #[doc = "Verifies whether the submitted completed task is correct."]
-                #[doc = "If verification fails, a new resolver is assigned to review the task."]
-                pub fn verify_completed_task(
+                #[doc = "signals the miner to exit task execution and reset itself"]
+                #[doc = "Admin will make status to stopped"]
+                #[doc = "RUnning -> Stopped"]
+                pub fn stop_task_and_vacate_miner(
                     &self,
-                    task_id: types::verify_completed_task::TaskId,
-                    completed_hash: types::verify_completed_task::CompletedHash,
-                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::VerifyCompletedTask>
-                {
+                    task_id: types::stop_task_and_vacate_miner::TaskId,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<
+                    types::StopTaskAndVacateMiner,
+                > {
                     ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
                         "TaskManagement",
-                        "verify_completed_task",
-                        types::VerifyCompletedTask {
-                            task_id,
-                            completed_hash,
-                        },
+                        "stop_task_and_vacate_miner",
+                        types::StopTaskAndVacateMiner { task_id },
                         [
-                            49u8, 141u8, 244u8, 197u8, 171u8, 49u8, 128u8, 166u8, 134u8, 161u8,
-                            75u8, 228u8, 151u8, 41u8, 22u8, 50u8, 59u8, 59u8, 105u8, 182u8, 161u8,
-                            79u8, 24u8, 105u8, 178u8, 162u8, 156u8, 71u8, 4u8, 211u8, 63u8, 25u8,
+                            172u8, 37u8, 212u8, 173u8, 157u8, 154u8, 119u8, 108u8, 255u8, 59u8,
+                            2u8, 223u8, 51u8, 248u8, 203u8, 36u8, 70u8, 161u8, 196u8, 245u8, 101u8,
+                            47u8, 59u8, 168u8, 133u8, 113u8, 228u8, 91u8, 67u8, 58u8, 207u8, 138u8,
                         ],
                     )
                 }
-                #[doc = "Resolver finalizes the verification of a task in case of disputes."]
-                pub fn resolve_completed_task(
+                #[doc = "miner confirms that it has reset itself"]
+                #[doc = "Stopped to vacated"]
+                pub fn confirm_miner_vacation(
                     &self,
-                    task_id: types::resolve_completed_task::TaskId,
-                    completed_hash: types::resolve_completed_task::CompletedHash,
-                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::ResolveCompletedTask>
+                    task_id: types::confirm_miner_vacation::TaskId,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::ConfirmMinerVacation>
                 {
                     ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
                         "TaskManagement",
-                        "resolve_completed_task",
-                        types::ResolveCompletedTask {
-                            task_id,
-                            completed_hash,
-                        },
+                        "confirm_miner_vacation",
+                        types::ConfirmMinerVacation { task_id },
                         [
-                            223u8, 251u8, 125u8, 162u8, 208u8, 57u8, 73u8, 105u8, 202u8, 103u8,
-                            112u8, 31u8, 21u8, 244u8, 57u8, 227u8, 190u8, 72u8, 89u8, 108u8, 85u8,
-                            16u8, 104u8, 198u8, 191u8, 155u8, 23u8, 232u8, 1u8, 109u8, 105u8,
-                            158u8,
+                            59u8, 61u8, 124u8, 133u8, 42u8, 125u8, 128u8, 6u8, 249u8, 164u8, 224u8,
+                            173u8, 22u8, 116u8, 117u8, 35u8, 39u8, 120u8, 131u8, 235u8, 40u8, 87u8,
+                            84u8, 120u8, 110u8, 65u8, 154u8, 195u8, 21u8, 18u8, 156u8, 56u8,
+                        ],
+                    )
+                }
+                pub fn set_gatekeeper(
+                    &self,
+                    new_gatekeeper: types::set_gatekeeper::NewGatekeeper,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::SetGatekeeper>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "TaskManagement",
+                        "set_gatekeeper",
+                        types::SetGatekeeper { new_gatekeeper },
+                        [
+                            39u8, 244u8, 185u8, 247u8, 96u8, 44u8, 145u8, 37u8, 21u8, 136u8, 48u8,
+                            26u8, 182u8, 200u8, 155u8, 25u8, 232u8, 163u8, 51u8, 155u8, 50u8, 12u8,
+                            188u8, 34u8, 60u8, 195u8, 251u8, 115u8, 151u8, 174u8, 116u8, 33u8,
                         ],
                     )
                 }
@@ -12612,14 +12774,13 @@ pub mod api {
             #[codec(dumb_trait_bound)]
             #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
             #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "A task has been scheduled and assigned to a worker."]
+            #[doc = "A new task has been scheduled and assigned to a worker."]
             pub struct TaskScheduled {
                 pub assigned_worker: task_scheduled::AssignedWorker,
-                pub task_type: task_scheduled::TaskType,
+                pub task_kind: task_scheduled::TaskKind,
                 pub task_owner: task_scheduled::TaskOwner,
                 pub task_id: task_scheduled::TaskId,
                 pub task: task_scheduled::Task,
-                pub zk_files_cid: task_scheduled::ZkFilesCid,
             }
             pub mod task_scheduled {
                 use super::runtime_types;
@@ -12627,16 +12788,11 @@ pub mod api {
                     ::subxt::ext::subxt_core::utils::AccountId32,
                     ::core::primitive::u64,
                 );
-                pub type TaskType = runtime_types::cyborg_primitives::task::TaskType;
+                pub type TaskKind = runtime_types::cyborg_primitives::task::TaskKind;
                 pub type TaskOwner = ::subxt::ext::subxt_core::utils::AccountId32;
                 pub type TaskId = ::core::primitive::u64;
                 pub type Task = runtime_types::bounded_collections::bounded_vec::BoundedVec<
                     ::core::primitive::u8,
-                >;
-                pub type ZkFilesCid = ::core::option::Option<
-                    runtime_types::bounded_collections::bounded_vec::BoundedVec<
-                        ::core::primitive::u8,
-                    >,
                 >;
             }
             impl ::subxt::ext::subxt_core::events::StaticEvent for TaskScheduled {
@@ -12654,22 +12810,19 @@ pub mod api {
             #[codec(dumb_trait_bound)]
             #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
             #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "A completed task has been submitted for verification."]
-            pub struct SubmittedCompletedTask {
-                pub task_id: submitted_completed_task::TaskId,
-                pub assigned_verifier: submitted_completed_task::AssignedVerifier,
+            #[doc = "A worker confirmed reception of task data and started execution."]
+            pub struct TaskReceptionConfirmed {
+                pub task_id: task_reception_confirmed::TaskId,
+                pub who: task_reception_confirmed::Who,
             }
-            pub mod submitted_completed_task {
+            pub mod task_reception_confirmed {
                 use super::runtime_types;
                 pub type TaskId = ::core::primitive::u64;
-                pub type AssignedVerifier = (
-                    ::subxt::ext::subxt_core::utils::AccountId32,
-                    ::core::primitive::u64,
-                );
+                pub type Who = ::subxt::ext::subxt_core::utils::AccountId32;
             }
-            impl ::subxt::ext::subxt_core::events::StaticEvent for SubmittedCompletedTask {
+            impl ::subxt::ext::subxt_core::events::StaticEvent for TaskReceptionConfirmed {
                 const PALLET: &'static str = "TaskManagement";
-                const EVENT: &'static str = "SubmittedCompletedTask";
+                const EVENT: &'static str = "TaskReceptionConfirmed";
             }
             #[derive(
                 :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -12682,22 +12835,17 @@ pub mod api {
             #[codec(dumb_trait_bound)]
             #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
             #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "A resolver has been assigned to determine the correct result after verification failure."]
-            pub struct VerifierResolverAssigned {
-                pub task_id: verifier_resolver_assigned::TaskId,
-                pub assigned_resolver: verifier_resolver_assigned::AssignedResolver,
+            #[doc = "Controller/admin requested to stop a running task."]
+            pub struct TaskStopRequested {
+                pub task_id: task_stop_requested::TaskId,
             }
-            pub mod verifier_resolver_assigned {
+            pub mod task_stop_requested {
                 use super::runtime_types;
                 pub type TaskId = ::core::primitive::u64;
-                pub type AssignedResolver = (
-                    ::subxt::ext::subxt_core::utils::AccountId32,
-                    ::core::primitive::u64,
-                );
             }
-            impl ::subxt::ext::subxt_core::events::StaticEvent for VerifierResolverAssigned {
+            impl ::subxt::ext::subxt_core::events::StaticEvent for TaskStopRequested {
                 const PALLET: &'static str = "TaskManagement";
-                const EVENT: &'static str = "VerifierResolverAssigned";
+                const EVENT: &'static str = "TaskStopRequested";
             }
             #[derive(
                 :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -12710,68 +12858,17 @@ pub mod api {
             #[codec(dumb_trait_bound)]
             #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
             #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "A completed task has been successfully verified."]
-            pub struct VerifiedCompletedTask {
-                pub task_id: verified_completed_task::TaskId,
+            #[doc = "Miner confirmed that they have vacated/reset after stopping."]
+            pub struct MinerVacated {
+                pub task_id: miner_vacated::TaskId,
             }
-            pub mod verified_completed_task {
+            pub mod miner_vacated {
                 use super::runtime_types;
                 pub type TaskId = ::core::primitive::u64;
             }
-            impl ::subxt::ext::subxt_core::events::StaticEvent for VerifiedCompletedTask {
+            impl ::subxt::ext::subxt_core::events::StaticEvent for MinerVacated {
                 const PALLET: &'static str = "TaskManagement";
-                const EVENT: &'static str = "VerifiedCompletedTask";
-            }
-            #[derive(
-                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                Debug,
-            )]
-            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-            #[codec(dumb_trait_bound)]
-            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
-            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "A completed task has been successfully resolved by the resolver."]
-            pub struct ResolvedCompletedTask {
-                pub task_id: resolved_completed_task::TaskId,
-            }
-            pub mod resolved_completed_task {
-                use super::runtime_types;
-                pub type TaskId = ::core::primitive::u64;
-            }
-            impl ::subxt::ext::subxt_core::events::StaticEvent for ResolvedCompletedTask {
-                const PALLET: &'static str = "TaskManagement";
-                const EVENT: &'static str = "ResolvedCompletedTask";
-            }
-            #[derive(
-                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                Debug,
-            )]
-            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-            #[codec(dumb_trait_bound)]
-            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
-            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "A task has been reassigned to a new worker."]
-            pub struct TaskReassigned {
-                pub task_id: task_reassigned::TaskId,
-                pub assigned_executor: task_reassigned::AssignedExecutor,
-            }
-            pub mod task_reassigned {
-                use super::runtime_types;
-                pub type TaskId = ::core::primitive::u64;
-                pub type AssignedExecutor = (
-                    ::subxt::ext::subxt_core::utils::AccountId32,
-                    ::core::primitive::u64,
-                );
-            }
-            impl ::subxt::ext::subxt_core::events::StaticEvent for TaskReassigned {
-                const PALLET: &'static str = "TaskManagement";
-                const EVENT: &'static str = "TaskReassigned";
+                const EVENT: &'static str = "MinerVacated";
             }
         }
         pub mod storage {
@@ -12808,12 +12905,21 @@ pub mod api {
                     >;
                     pub type Param0 = ::core::primitive::u64;
                 }
-                pub mod task_verifications {
+                pub mod gatekeeper_account {
                     use super::runtime_types;
-                    pub type TaskVerifications =
-                        runtime_types::cyborg_primitives::task::Verifications<
-                            ::subxt::ext::subxt_core::utils::AccountId32,
-                        >;
+                    pub type GatekeeperAccount = ::subxt::ext::subxt_core::utils::AccountId32;
+                }
+                pub mod task_rate_limits {
+                    use super::runtime_types;
+                    pub type TaskRateLimits = (::core::primitive::u32, ::core::primitive::u32);
+                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                }
+                pub mod compute_aggregations {
+                    use super::runtime_types;
+                    pub type ComputeAggregations = (
+                        ::core::primitive::u32,
+                        ::core::option::Option<::core::primitive::u32>,
+                    );
                     pub type Param0 = ::core::primitive::u64;
                 }
             }
@@ -12834,9 +12940,9 @@ pub mod api {
                         "TaskStatus",
                         (),
                         [
-                            208u8, 58u8, 223u8, 17u8, 86u8, 207u8, 109u8, 247u8, 99u8, 155u8, 42u8,
-                            195u8, 193u8, 127u8, 84u8, 25u8, 190u8, 16u8, 31u8, 54u8, 16u8, 225u8,
-                            152u8, 62u8, 68u8, 197u8, 100u8, 226u8, 210u8, 224u8, 147u8, 249u8,
+                            155u8, 16u8, 154u8, 145u8, 194u8, 211u8, 188u8, 163u8, 254u8, 145u8,
+                            66u8, 55u8, 92u8, 183u8, 46u8, 244u8, 109u8, 192u8, 121u8, 45u8, 89u8,
+                            20u8, 82u8, 48u8, 27u8, 168u8, 202u8, 250u8, 242u8, 53u8, 157u8, 226u8,
                         ],
                     )
                 }
@@ -12860,9 +12966,9 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            208u8, 58u8, 223u8, 17u8, 86u8, 207u8, 109u8, 247u8, 99u8, 155u8, 42u8,
-                            195u8, 193u8, 127u8, 84u8, 25u8, 190u8, 16u8, 31u8, 54u8, 16u8, 225u8,
-                            152u8, 62u8, 68u8, 197u8, 100u8, 226u8, 210u8, 224u8, 147u8, 249u8,
+                            155u8, 16u8, 154u8, 145u8, 194u8, 211u8, 188u8, 163u8, 254u8, 145u8,
+                            66u8, 55u8, 92u8, 183u8, 46u8, 244u8, 109u8, 192u8, 121u8, 45u8, 89u8,
+                            20u8, 82u8, 48u8, 27u8, 168u8, 202u8, 250u8, 242u8, 53u8, 157u8, 226u8,
                         ],
                     )
                 }
@@ -13001,10 +13107,10 @@ pub mod api {
                         "Tasks",
                         (),
                         [
-                            178u8, 186u8, 252u8, 119u8, 221u8, 251u8, 118u8, 41u8, 128u8, 176u8,
-                            3u8, 31u8, 95u8, 50u8, 114u8, 73u8, 93u8, 104u8, 28u8, 44u8, 71u8,
-                            72u8, 122u8, 190u8, 192u8, 121u8, 94u8, 169u8, 162u8, 75u8, 168u8,
-                            207u8,
+                            195u8, 156u8, 108u8, 82u8, 122u8, 86u8, 208u8, 128u8, 204u8, 90u8,
+                            54u8, 162u8, 31u8, 0u8, 98u8, 96u8, 231u8, 101u8, 61u8, 177u8, 242u8,
+                            85u8, 129u8, 99u8, 246u8, 162u8, 165u8, 117u8, 88u8, 222u8, 184u8,
+                            120u8,
                         ],
                     )
                 }
@@ -13028,57 +13134,124 @@ pub mod api {
                             _0.borrow(),
                         ),
                         [
-                            178u8, 186u8, 252u8, 119u8, 221u8, 251u8, 118u8, 41u8, 128u8, 176u8,
-                            3u8, 31u8, 95u8, 50u8, 114u8, 73u8, 93u8, 104u8, 28u8, 44u8, 71u8,
-                            72u8, 122u8, 190u8, 192u8, 121u8, 94u8, 169u8, 162u8, 75u8, 168u8,
-                            207u8,
+                            195u8, 156u8, 108u8, 82u8, 122u8, 86u8, 208u8, 128u8, 204u8, 90u8,
+                            54u8, 162u8, 31u8, 0u8, 98u8, 96u8, 231u8, 101u8, 61u8, 177u8, 242u8,
+                            85u8, 129u8, 99u8, 246u8, 162u8, 165u8, 117u8, 88u8, 222u8, 184u8,
+                            120u8,
                         ],
                     )
                 }
-                #[doc = " Private task verifications"]
-                pub fn task_verifications_iter(
+                pub fn gatekeeper_account(
                     &self,
                 ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
                     (),
-                    types::task_verifications::TaskVerifications,
-                    (),
-                    (),
+                    types::gatekeeper_account::GatekeeperAccount,
                     ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                    (),
                 > {
                     ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
                         "TaskManagement",
-                        "TaskVerifications",
+                        "GatekeeperAccount",
                         (),
                         [
-                            9u8, 232u8, 72u8, 220u8, 208u8, 79u8, 171u8, 196u8, 190u8, 85u8, 62u8,
-                            234u8, 187u8, 88u8, 45u8, 212u8, 220u8, 155u8, 148u8, 201u8, 8u8, 92u8,
-                            163u8, 225u8, 95u8, 117u8, 212u8, 7u8, 87u8, 192u8, 83u8, 105u8,
+                            225u8, 238u8, 177u8, 40u8, 5u8, 115u8, 66u8, 131u8, 220u8, 35u8, 198u8,
+                            36u8, 181u8, 218u8, 36u8, 44u8, 165u8, 175u8, 11u8, 145u8, 82u8, 130u8,
+                            136u8, 70u8, 65u8, 95u8, 115u8, 82u8, 37u8, 18u8, 182u8, 25u8,
                         ],
                     )
                 }
-                #[doc = " Private task verifications"]
-                pub fn task_verifications(
+                pub fn task_rate_limits_iter(
                     &self,
-                    _0: impl ::core::borrow::Borrow<types::task_verifications::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::task_rate_limits::TaskRateLimits,
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "TaskManagement",
+                        "TaskRateLimits",
+                        (),
+                        [
+                            117u8, 174u8, 77u8, 117u8, 121u8, 25u8, 173u8, 171u8, 22u8, 38u8,
+                            221u8, 248u8, 253u8, 112u8, 98u8, 39u8, 249u8, 170u8, 178u8, 213u8,
+                            12u8, 172u8, 225u8, 137u8, 11u8, 97u8, 221u8, 206u8, 83u8, 162u8,
+                            163u8, 7u8,
+                        ],
+                    )
+                }
+                pub fn task_rate_limits(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::task_rate_limits::Param0>,
                 ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
                     ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
-                        types::task_verifications::Param0,
+                        types::task_rate_limits::Param0,
                     >,
-                    types::task_verifications::TaskVerifications,
+                    types::task_rate_limits::TaskRateLimits,
                     ::subxt::ext::subxt_core::utils::Yes,
-                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
                     (),
                 > {
                     ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
                         "TaskManagement",
-                        "TaskVerifications",
+                        "TaskRateLimits",
                         ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
                             _0.borrow(),
                         ),
                         [
-                            9u8, 232u8, 72u8, 220u8, 208u8, 79u8, 171u8, 196u8, 190u8, 85u8, 62u8,
-                            234u8, 187u8, 88u8, 45u8, 212u8, 220u8, 155u8, 148u8, 201u8, 8u8, 92u8,
-                            163u8, 225u8, 95u8, 117u8, 212u8, 7u8, 87u8, 192u8, 83u8, 105u8,
+                            117u8, 174u8, 77u8, 117u8, 121u8, 25u8, 173u8, 171u8, 22u8, 38u8,
+                            221u8, 248u8, 253u8, 112u8, 98u8, 39u8, 249u8, 170u8, 178u8, 213u8,
+                            12u8, 172u8, 225u8, 137u8, 11u8, 97u8, 221u8, 206u8, 83u8, 162u8,
+                            163u8, 7u8,
+                        ],
+                    )
+                }
+                #[doc = " Storage for compute aggregation information (start and end block)."]
+                pub fn compute_aggregations_iter(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::compute_aggregations::ComputeAggregations,
+                    (),
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "TaskManagement",
+                        "ComputeAggregations",
+                        (),
+                        [
+                            7u8, 11u8, 59u8, 153u8, 54u8, 185u8, 104u8, 232u8, 157u8, 61u8, 92u8,
+                            102u8, 159u8, 251u8, 104u8, 112u8, 30u8, 243u8, 160u8, 219u8, 127u8,
+                            112u8, 25u8, 187u8, 172u8, 101u8, 65u8, 98u8, 241u8, 22u8, 55u8, 233u8,
+                        ],
+                    )
+                }
+                #[doc = " Storage for compute aggregation information (start and end block)."]
+                pub fn compute_aggregations(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::compute_aggregations::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::compute_aggregations::Param0,
+                    >,
+                    types::compute_aggregations::ComputeAggregations,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "TaskManagement",
+                        "ComputeAggregations",
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
+                        ),
+                        [
+                            7u8, 11u8, 59u8, 153u8, 54u8, 185u8, 104u8, 232u8, 157u8, 61u8, 92u8,
+                            102u8, 159u8, 251u8, 104u8, 112u8, 30u8, 243u8, 160u8, 219u8, 127u8,
+                            112u8, 25u8, 187u8, 172u8, 101u8, 65u8, 98u8, 241u8, 22u8, 55u8, 233u8,
                         ],
                     )
                 }
@@ -13562,9 +13735,9 @@ pub mod api {
     pub mod payment {
         use super::root_mod;
         use super::runtime_types;
-        #[doc = "Pallet Errors"]
+        #[doc = "Custom pallet errors."]
         pub type Error = runtime_types::pallet_payment::pallet::Error;
-        #[doc = "Contains a variant per dispatchable extrinsic that this pallet has."]
+        #[doc = "Declare callable extrinsics."]
         pub type Call = runtime_types::pallet_payment::pallet::Call;
         pub mod calls {
             use super::root_mod;
@@ -13587,34 +13760,8 @@ pub mod api {
                 #[encode_as_type(
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
-                #[doc = "Allows the admin (root) to set the price per compute hour."]
-                pub struct SetPricePerHour {
-                    pub new_price: set_price_per_hour::NewPrice,
-                }
-                pub mod set_price_per_hour {
-                    use super::runtime_types;
-                    pub type NewPrice = ::core::primitive::u128;
-                }
-                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for SetPricePerHour {
-                    const PALLET: &'static str = "Payment";
-                    const CALL: &'static str = "set_price_per_hour";
-                }
-                #[derive(
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                    Debug,
-                )]
-                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-                #[codec(dumb_trait_bound)]
-                #[decode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
-                )]
-                #[encode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
-                )]
-                #[doc = "Allows the admin (root) to set the service provider's account."]
+                #[doc = "Set the account that receives all payments."]
+                #[doc = "Can only be set by root user"]
                 pub struct SetServiceProviderAccount {
                     pub new_account: set_service_provider_account::NewAccount,
                 }
@@ -13625,33 +13772,6 @@ pub mod api {
                 impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for SetServiceProviderAccount {
                     const PALLET: &'static str = "Payment";
                     const CALL: &'static str = "set_service_provider_account";
-                }
-                #[derive(
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                    Debug,
-                )]
-                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-                #[codec(dumb_trait_bound)]
-                #[decode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
-                )]
-                #[encode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
-                )]
-                #[doc = "Allows a user to purchase compute hours."]
-                pub struct PurchaseComputeHours {
-                    pub hours: purchase_compute_hours::Hours,
-                }
-                pub mod purchase_compute_hours {
-                    use super::runtime_types;
-                    pub type Hours = ::core::primitive::u32;
-                }
-                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for PurchaseComputeHours {
-                    const PALLET: &'static str = "Payment";
-                    const CALL: &'static str = "purchase_compute_hours";
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -13680,28 +13800,211 @@ pub mod api {
                     const PALLET: &'static str = "Payment";
                     const CALL: &'static str = "consume_compute_hours";
                 }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Admin sets a miner's reward rates for active and idle states."]
+                #[doc = "In future we idle rates will be static , will be set through the runtime configuration"]
+                pub struct SetRewardRatesForMiner {
+                    pub miner: set_reward_rates_for_miner::Miner,
+                    pub active: set_reward_rates_for_miner::Active,
+                    pub idle: set_reward_rates_for_miner::Idle,
+                }
+                pub mod set_reward_rates_for_miner {
+                    use super::runtime_types;
+                    pub type Miner = ::subxt::ext::subxt_core::utils::AccountId32;
+                    pub type Active = runtime_types::cyborg_primitives::payment::RewardRates<
+                        ::core::primitive::u128,
+                    >;
+                    pub type Idle = runtime_types::cyborg_primitives::payment::RewardRates<
+                        ::core::primitive::u128,
+                    >;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for SetRewardRatesForMiner {
+                    const PALLET: &'static str = "Payment";
+                    const CALL: &'static str = "set_reward_rates_for_miner";
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Called by a registered miner to report their usage."]
+                pub struct RecordUsage {
+                    pub cpu: record_usage::Cpu,
+                    pub ram: record_usage::Ram,
+                    pub storage: record_usage::Storage,
+                }
+                pub mod record_usage {
+                    use super::runtime_types;
+                    pub type Cpu = ::core::primitive::u8;
+                    pub type Ram = ::core::primitive::u8;
+                    pub type Storage = ::core::primitive::u8;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for RecordUsage {
+                    const PALLET: &'static str = "Payment";
+                    const CALL: &'static str = "record_usage";
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Reward a miner for a given number of active and idle hours."]
+                pub struct RewardMiner {
+                    pub active_hours: reward_miner::ActiveHours,
+                    pub idle_hours: reward_miner::IdleHours,
+                    pub miner: reward_miner::Miner,
+                }
+                pub mod reward_miner {
+                    use super::runtime_types;
+                    pub type ActiveHours = ::core::primitive::u32;
+                    pub type IdleHours = ::core::primitive::u32;
+                    pub type Miner = ::subxt::ext::subxt_core::utils::AccountId32;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for RewardMiner {
+                    const PALLET: &'static str = "Payment";
+                    const CALL: &'static str = "reward_miner";
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Transfer all pending rewards to miners from the provider account."]
+                pub struct DistributeRewards;
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for DistributeRewards {
+                    const PALLET: &'static str = "Payment";
+                    const CALL: &'static str = "distribute_rewards";
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Allows a new user to subscribe to compute by paying upfront."]
+                pub struct Subscribe {
+                    pub hours: subscribe::Hours,
+                }
+                pub mod subscribe {
+                    use super::runtime_types;
+                    pub type Hours = ::core::primitive::u32;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for Subscribe {
+                    const PALLET: &'static str = "Payment";
+                    const CALL: &'static str = "subscribe";
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Lets an existing user add more hours to their subscription."]
+                pub struct AddHours {
+                    pub extra_hours: add_hours::ExtraHours,
+                }
+                pub mod add_hours {
+                    use super::runtime_types;
+                    pub type ExtraHours = ::core::primitive::u32;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for AddHours {
+                    const PALLET: &'static str = "Payment";
+                    const CALL: &'static str = "add_hours";
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Admin sets the global subscription cost per compute hour."]
+                pub struct SetSubscriptionFeePerHour {
+                    pub new_fee_per_hour: set_subscription_fee_per_hour::NewFeePerHour,
+                }
+                pub mod set_subscription_fee_per_hour {
+                    use super::runtime_types;
+                    pub type NewFeePerHour = ::core::primitive::u128;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for SetSubscriptionFeePerHour {
+                    const PALLET: &'static str = "Payment";
+                    const CALL: &'static str = "set_subscription_fee_per_hour";
+                }
             }
             pub struct TransactionApi;
             impl TransactionApi {
-                #[doc = "Allows the admin (root) to set the price per compute hour."]
-                pub fn set_price_per_hour(
-                    &self,
-                    new_price: types::set_price_per_hour::NewPrice,
-                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::SetPricePerHour>
-                {
-                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
-                        "Payment",
-                        "set_price_per_hour",
-                        types::SetPricePerHour { new_price },
-                        [
-                            154u8, 194u8, 241u8, 49u8, 133u8, 115u8, 113u8, 146u8, 134u8, 73u8,
-                            63u8, 108u8, 230u8, 186u8, 19u8, 165u8, 215u8, 150u8, 46u8, 110u8,
-                            171u8, 162u8, 31u8, 196u8, 185u8, 27u8, 137u8, 195u8, 106u8, 67u8,
-                            246u8, 38u8,
-                        ],
-                    )
-                }
-                #[doc = "Allows the admin (root) to set the service provider's account."]
+                #[doc = "Set the account that receives all payments."]
+                #[doc = "Can only be set by root user"]
                 pub fn set_service_provider_account(
                     &self,
                     new_account: types::set_service_provider_account::NewAccount,
@@ -13716,24 +14019,6 @@ pub mod api {
                             24u8, 86u8, 140u8, 39u8, 234u8, 118u8, 6u8, 98u8, 41u8, 11u8, 125u8,
                             166u8, 118u8, 252u8, 214u8, 114u8, 185u8, 229u8, 242u8, 158u8, 27u8,
                             86u8, 114u8, 146u8, 59u8, 238u8, 3u8, 25u8, 35u8, 125u8, 27u8, 88u8,
-                        ],
-                    )
-                }
-                #[doc = "Allows a user to purchase compute hours."]
-                pub fn purchase_compute_hours(
-                    &self,
-                    hours: types::purchase_compute_hours::Hours,
-                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::PurchaseComputeHours>
-                {
-                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
-                        "Payment",
-                        "purchase_compute_hours",
-                        types::PurchaseComputeHours { hours },
-                        [
-                            213u8, 167u8, 114u8, 169u8, 206u8, 244u8, 199u8, 185u8, 109u8, 23u8,
-                            162u8, 86u8, 87u8, 75u8, 244u8, 144u8, 127u8, 141u8, 160u8, 125u8,
-                            117u8, 176u8, 30u8, 115u8, 134u8, 119u8, 203u8, 68u8, 181u8, 49u8,
-                            108u8, 63u8,
                         ],
                     )
                 }
@@ -13755,9 +14040,147 @@ pub mod api {
                         ],
                     )
                 }
+                #[doc = "Admin sets a miner's reward rates for active and idle states."]
+                #[doc = "In future we idle rates will be static , will be set through the runtime configuration"]
+                pub fn set_reward_rates_for_miner(
+                    &self,
+                    miner: types::set_reward_rates_for_miner::Miner,
+                    active: types::set_reward_rates_for_miner::Active,
+                    idle: types::set_reward_rates_for_miner::Idle,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<
+                    types::SetRewardRatesForMiner,
+                > {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "Payment",
+                        "set_reward_rates_for_miner",
+                        types::SetRewardRatesForMiner {
+                            miner,
+                            active,
+                            idle,
+                        },
+                        [
+                            100u8, 95u8, 79u8, 130u8, 93u8, 94u8, 142u8, 245u8, 119u8, 205u8,
+                            111u8, 145u8, 127u8, 174u8, 78u8, 134u8, 251u8, 72u8, 205u8, 24u8,
+                            254u8, 248u8, 119u8, 7u8, 154u8, 94u8, 102u8, 141u8, 235u8, 125u8,
+                            24u8, 212u8,
+                        ],
+                    )
+                }
+                #[doc = "Called by a registered miner to report their usage."]
+                pub fn record_usage(
+                    &self,
+                    cpu: types::record_usage::Cpu,
+                    ram: types::record_usage::Ram,
+                    storage: types::record_usage::Storage,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::RecordUsage>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "Payment",
+                        "record_usage",
+                        types::RecordUsage { cpu, ram, storage },
+                        [
+                            135u8, 142u8, 71u8, 213u8, 221u8, 223u8, 244u8, 163u8, 156u8, 17u8,
+                            69u8, 50u8, 185u8, 93u8, 155u8, 178u8, 109u8, 47u8, 192u8, 202u8, 94u8,
+                            155u8, 181u8, 59u8, 238u8, 49u8, 154u8, 170u8, 136u8, 249u8, 158u8,
+                            242u8,
+                        ],
+                    )
+                }
+                #[doc = "Reward a miner for a given number of active and idle hours."]
+                pub fn reward_miner(
+                    &self,
+                    active_hours: types::reward_miner::ActiveHours,
+                    idle_hours: types::reward_miner::IdleHours,
+                    miner: types::reward_miner::Miner,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::RewardMiner>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "Payment",
+                        "reward_miner",
+                        types::RewardMiner {
+                            active_hours,
+                            idle_hours,
+                            miner,
+                        },
+                        [
+                            85u8, 250u8, 237u8, 231u8, 18u8, 242u8, 68u8, 14u8, 253u8, 46u8, 30u8,
+                            254u8, 112u8, 185u8, 12u8, 7u8, 217u8, 134u8, 214u8, 103u8, 139u8,
+                            143u8, 80u8, 40u8, 156u8, 79u8, 90u8, 33u8, 107u8, 217u8, 194u8, 37u8,
+                        ],
+                    )
+                }
+                #[doc = "Transfer all pending rewards to miners from the provider account."]
+                pub fn distribute_rewards(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::DistributeRewards>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "Payment",
+                        "distribute_rewards",
+                        types::DistributeRewards {},
+                        [
+                            26u8, 131u8, 235u8, 12u8, 150u8, 11u8, 212u8, 188u8, 5u8, 73u8, 100u8,
+                            185u8, 194u8, 31u8, 160u8, 201u8, 39u8, 61u8, 170u8, 149u8, 99u8,
+                            165u8, 252u8, 102u8, 166u8, 226u8, 185u8, 236u8, 74u8, 213u8, 66u8,
+                            168u8,
+                        ],
+                    )
+                }
+                #[doc = "Allows a new user to subscribe to compute by paying upfront."]
+                pub fn subscribe(
+                    &self,
+                    hours: types::subscribe::Hours,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::Subscribe>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "Payment",
+                        "subscribe",
+                        types::Subscribe { hours },
+                        [
+                            116u8, 34u8, 65u8, 177u8, 182u8, 98u8, 90u8, 184u8, 219u8, 46u8, 243u8,
+                            62u8, 175u8, 182u8, 187u8, 112u8, 38u8, 3u8, 150u8, 19u8, 44u8, 103u8,
+                            32u8, 103u8, 205u8, 101u8, 51u8, 79u8, 140u8, 235u8, 12u8, 28u8,
+                        ],
+                    )
+                }
+                #[doc = "Lets an existing user add more hours to their subscription."]
+                pub fn add_hours(
+                    &self,
+                    extra_hours: types::add_hours::ExtraHours,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::AddHours>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "Payment",
+                        "add_hours",
+                        types::AddHours { extra_hours },
+                        [
+                            27u8, 254u8, 62u8, 69u8, 55u8, 183u8, 1u8, 109u8, 230u8, 192u8, 157u8,
+                            161u8, 245u8, 173u8, 78u8, 135u8, 239u8, 174u8, 121u8, 67u8, 157u8,
+                            26u8, 229u8, 112u8, 134u8, 249u8, 7u8, 81u8, 196u8, 212u8, 83u8, 117u8,
+                        ],
+                    )
+                }
+                #[doc = "Admin sets the global subscription cost per compute hour."]
+                pub fn set_subscription_fee_per_hour(
+                    &self,
+                    new_fee_per_hour: types::set_subscription_fee_per_hour::NewFeePerHour,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<
+                    types::SetSubscriptionFeePerHour,
+                > {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "Payment",
+                        "set_subscription_fee_per_hour",
+                        types::SetSubscriptionFeePerHour { new_fee_per_hour },
+                        [
+                            208u8, 148u8, 103u8, 109u8, 27u8, 194u8, 44u8, 99u8, 79u8, 196u8, 22u8,
+                            72u8, 215u8, 134u8, 161u8, 29u8, 178u8, 87u8, 61u8, 13u8, 85u8, 233u8,
+                            13u8, 167u8, 125u8, 60u8, 34u8, 132u8, 33u8, 171u8, 102u8, 51u8,
+                        ],
+                    )
+                }
             }
         }
-        #[doc = "The `Event` enum of this pallet"]
+        #[doc = "Event declarations for extrinsic calls."]
         pub type Event = runtime_types::pallet_payment::pallet::Event;
         pub mod events {
             use super::runtime_types;
@@ -13772,7 +14195,6 @@ pub mod api {
             #[codec(dumb_trait_bound)]
             #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
             #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "Event triggered when compute hours are consumed."]
             pub struct HoursConsumed(pub hours_consumed::Field0, pub hours_consumed::Field1);
             pub mod hours_consumed {
                 use super::runtime_types;
@@ -13794,55 +14216,6 @@ pub mod api {
             #[codec(dumb_trait_bound)]
             #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
             #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "Event triggered when compute hours are purchased."]
-            pub struct HoursPurchased(
-                pub hours_purchased::Field0,
-                pub hours_purchased::Field1,
-                pub hours_purchased::Field2,
-            );
-            pub mod hours_purchased {
-                use super::runtime_types;
-                pub type Field0 = ::subxt::ext::subxt_core::utils::AccountId32;
-                pub type Field1 = ::core::primitive::u32;
-                pub type Field2 = ::core::primitive::u128;
-            }
-            impl ::subxt::ext::subxt_core::events::StaticEvent for HoursPurchased {
-                const PALLET: &'static str = "Payment";
-                const EVENT: &'static str = "HoursPurchased";
-            }
-            #[derive(
-                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                Debug,
-            )]
-            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-            #[codec(dumb_trait_bound)]
-            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
-            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "Event triggered when the admin sets a new price per hour."]
-            pub struct PricePerHourSet(pub price_per_hour_set::Field0);
-            pub mod price_per_hour_set {
-                use super::runtime_types;
-                pub type Field0 = ::core::primitive::u128;
-            }
-            impl ::subxt::ext::subxt_core::events::StaticEvent for PricePerHourSet {
-                const PALLET: &'static str = "Payment";
-                const EVENT: &'static str = "PricePerHourSet";
-            }
-            #[derive(
-                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                Debug,
-            )]
-            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-            #[codec(dumb_trait_bound)]
-            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
-            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
-            #[doc = "Event triggered when the admin sets a new service provider account."]
             pub struct ServiceProviderAccountSet(pub service_provider_account_set::Field0);
             pub mod service_provider_account_set {
                 use super::runtime_types;
@@ -13852,27 +14225,226 @@ pub mod api {
                 const PALLET: &'static str = "Payment";
                 const EVENT: &'static str = "ServiceProviderAccountSet";
             }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            pub struct MinerUsageRecorded(
+                pub miner_usage_recorded::Field0,
+                pub miner_usage_recorded::Field1,
+                pub miner_usage_recorded::Field2,
+                pub miner_usage_recorded::Field3,
+            );
+            pub mod miner_usage_recorded {
+                use super::runtime_types;
+                pub type Field0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                pub type Field1 = ::core::primitive::u8;
+                pub type Field2 = ::core::primitive::u8;
+                pub type Field3 = ::core::primitive::u8;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for MinerUsageRecorded {
+                const PALLET: &'static str = "Payment";
+                const EVENT: &'static str = "MinerUsageRecorded";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            pub struct MinerRewarded(pub miner_rewarded::Field0, pub miner_rewarded::Field1);
+            pub mod miner_rewarded {
+                use super::runtime_types;
+                pub type Field0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                pub type Field1 = ::core::primitive::u128;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for MinerRewarded {
+                const PALLET: &'static str = "Payment";
+                const EVENT: &'static str = "MinerRewarded";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            pub struct SubscriptionFeeSet(pub subscription_fee_set::Field0);
+            pub mod subscription_fee_set {
+                use super::runtime_types;
+                pub type Field0 = ::core::primitive::u128;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for SubscriptionFeeSet {
+                const PALLET: &'static str = "Payment";
+                const EVENT: &'static str = "SubscriptionFeeSet";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            pub struct ConsumerSubscribed(
+                pub consumer_subscribed::Field0,
+                pub consumer_subscribed::Field1,
+                pub consumer_subscribed::Field2,
+            );
+            pub mod consumer_subscribed {
+                use super::runtime_types;
+                pub type Field0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                pub type Field1 = ::core::primitive::u128;
+                pub type Field2 = ::core::primitive::u32;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for ConsumerSubscribed {
+                const PALLET: &'static str = "Payment";
+                const EVENT: &'static str = "ConsumerSubscribed";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            pub struct SubscriptionRenewed(
+                pub subscription_renewed::Field0,
+                pub subscription_renewed::Field1,
+            );
+            pub mod subscription_renewed {
+                use super::runtime_types;
+                pub type Field0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                pub type Field1 = ::core::primitive::u32;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for SubscriptionRenewed {
+                const PALLET: &'static str = "Payment";
+                const EVENT: &'static str = "SubscriptionRenewed";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            pub struct RewardRatesUpdated {
+                pub miner: reward_rates_updated::Miner,
+                pub active: reward_rates_updated::Active,
+                pub idle: reward_rates_updated::Idle,
+            }
+            pub mod reward_rates_updated {
+                use super::runtime_types;
+                pub type Miner = ::subxt::ext::subxt_core::utils::AccountId32;
+                pub type Active =
+                    runtime_types::cyborg_primitives::payment::RewardRates<::core::primitive::u128>;
+                pub type Idle =
+                    runtime_types::cyborg_primitives::payment::RewardRates<::core::primitive::u128>;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for RewardRatesUpdated {
+                const PALLET: &'static str = "Payment";
+                const EVENT: &'static str = "RewardRatesUpdated";
+            }
         }
         pub mod storage {
             use super::runtime_types;
             pub mod types {
                 use super::runtime_types;
+                pub mod subscription_fee {
+                    use super::runtime_types;
+                    pub type SubscriptionFee = ::core::primitive::u128;
+                }
                 pub mod compute_hours {
                     use super::runtime_types;
                     pub type ComputeHours = ::core::primitive::u32;
                     pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
                 }
-                pub mod price_per_hour {
-                    use super::runtime_types;
-                    pub type PricePerHour = ::core::primitive::u128;
-                }
                 pub mod service_provider_account {
                     use super::runtime_types;
                     pub type ServiceProviderAccount = ::subxt::ext::subxt_core::utils::AccountId32;
                 }
+                pub mod miner_usage {
+                    use super::runtime_types;
+                    pub type MinerUsage = (
+                        ::core::primitive::u8,
+                        ::core::primitive::u8,
+                        ::core::primitive::u8,
+                    );
+                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                }
+                pub mod miner_pending_rewards {
+                    use super::runtime_types;
+                    pub type MinerPendingRewards = ::core::primitive::u128;
+                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                }
+                pub mod active_reward_rates {
+                    use super::runtime_types;
+                    pub type ActiveRewardRates =
+                        runtime_types::cyborg_primitives::payment::RewardRates<
+                            ::core::primitive::u128,
+                        >;
+                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                }
+                pub mod idle_reward_rates {
+                    use super::runtime_types;
+                    pub type IdleRewardRates =
+                        runtime_types::cyborg_primitives::payment::RewardRates<
+                            ::core::primitive::u128,
+                        >;
+                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                }
             }
             pub struct StorageApi;
             impl StorageApi {
+                #[doc = " Storage for global per-hour subscription fee."]
+                pub fn subscription_fee(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::subscription_fee::SubscriptionFee,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "SubscriptionFee",
+                        (),
+                        [
+                            133u8, 72u8, 97u8, 106u8, 105u8, 99u8, 147u8, 45u8, 62u8, 250u8, 139u8,
+                            56u8, 253u8, 9u8, 249u8, 19u8, 235u8, 86u8, 0u8, 240u8, 27u8, 111u8,
+                            0u8, 249u8, 166u8, 207u8, 145u8, 249u8, 84u8, 46u8, 156u8, 119u8,
+                        ],
+                    )
+                }
+                #[doc = " Storage map that tracks the number of compute hours owned by each account."]
                 pub fn compute_hours_iter(
                     &self,
                 ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
@@ -13894,6 +14466,7 @@ pub mod api {
                         ],
                     )
                 }
+                #[doc = " Storage map that tracks the number of compute hours owned by each account."]
                 pub fn compute_hours(
                     &self,
                     _0: impl ::core::borrow::Borrow<types::compute_hours::Param0>,
@@ -13920,27 +14493,7 @@ pub mod api {
                         ],
                     )
                 }
-                pub fn price_per_hour(
-                    &self,
-                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
-                    (),
-                    types::price_per_hour::PricePerHour,
-                    ::subxt::ext::subxt_core::utils::Yes,
-                    ::subxt::ext::subxt_core::utils::Yes,
-                    (),
-                > {
-                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
-                        "Payment",
-                        "PricePerHour",
-                        (),
-                        [
-                            198u8, 231u8, 132u8, 102u8, 163u8, 193u8, 105u8, 211u8, 85u8, 39u8,
-                            192u8, 63u8, 206u8, 152u8, 170u8, 120u8, 92u8, 222u8, 5u8, 55u8, 35u8,
-                            70u8, 127u8, 191u8, 44u8, 237u8, 204u8, 251u8, 228u8, 68u8, 133u8,
-                            180u8,
-                        ],
-                    )
-                }
+                #[doc = " Storage that holds the service provider's account ID."]
                 pub fn service_provider_account(
                     &self,
                 ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
@@ -13958,6 +14511,200 @@ pub mod api {
                             253u8, 46u8, 234u8, 103u8, 73u8, 90u8, 132u8, 23u8, 19u8, 30u8, 228u8,
                             188u8, 27u8, 171u8, 93u8, 55u8, 249u8, 164u8, 34u8, 219u8, 197u8,
                             188u8, 216u8, 30u8, 15u8, 111u8, 119u8, 62u8, 20u8, 44u8, 249u8, 193u8,
+                        ],
+                    )
+                }
+                #[doc = " Store the latest recorded usage (cpu%, ram%, storage%) for miners."]
+                pub fn miner_usage_iter(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::miner_usage::MinerUsage,
+                    (),
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "MinerUsage",
+                        (),
+                        [
+                            160u8, 41u8, 205u8, 162u8, 172u8, 61u8, 74u8, 66u8, 197u8, 241u8,
+                            220u8, 207u8, 137u8, 192u8, 96u8, 37u8, 145u8, 114u8, 153u8, 196u8,
+                            146u8, 243u8, 32u8, 226u8, 39u8, 193u8, 150u8, 123u8, 44u8, 204u8,
+                            241u8, 136u8,
+                        ],
+                    )
+                }
+                #[doc = " Store the latest recorded usage (cpu%, ram%, storage%) for miners."]
+                pub fn miner_usage(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::miner_usage::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::miner_usage::Param0,
+                    >,
+                    types::miner_usage::MinerUsage,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "MinerUsage",
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
+                        ),
+                        [
+                            160u8, 41u8, 205u8, 162u8, 172u8, 61u8, 74u8, 66u8, 197u8, 241u8,
+                            220u8, 207u8, 137u8, 192u8, 96u8, 37u8, 145u8, 114u8, 153u8, 196u8,
+                            146u8, 243u8, 32u8, 226u8, 39u8, 193u8, 150u8, 123u8, 44u8, 204u8,
+                            241u8, 136u8,
+                        ],
+                    )
+                }
+                #[doc = " Store rewards waiting to be distributed to miners."]
+                pub fn miner_pending_rewards_iter(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::miner_pending_rewards::MinerPendingRewards,
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "MinerPendingRewards",
+                        (),
+                        [
+                            47u8, 17u8, 96u8, 206u8, 198u8, 9u8, 171u8, 114u8, 231u8, 87u8, 173u8,
+                            89u8, 104u8, 155u8, 96u8, 9u8, 115u8, 62u8, 141u8, 99u8, 96u8, 40u8,
+                            199u8, 223u8, 93u8, 141u8, 252u8, 194u8, 130u8, 11u8, 234u8, 7u8,
+                        ],
+                    )
+                }
+                #[doc = " Store rewards waiting to be distributed to miners."]
+                pub fn miner_pending_rewards(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::miner_pending_rewards::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::miner_pending_rewards::Param0,
+                    >,
+                    types::miner_pending_rewards::MinerPendingRewards,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "MinerPendingRewards",
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
+                        ),
+                        [
+                            47u8, 17u8, 96u8, 206u8, 198u8, 9u8, 171u8, 114u8, 231u8, 87u8, 173u8,
+                            89u8, 104u8, 155u8, 96u8, 9u8, 115u8, 62u8, 141u8, 99u8, 96u8, 40u8,
+                            199u8, 223u8, 93u8, 141u8, 252u8, 194u8, 130u8, 11u8, 234u8, 7u8,
+                        ],
+                    )
+                }
+                #[doc = " Store custom reward rates when miner is active."]
+                pub fn active_reward_rates_iter(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::active_reward_rates::ActiveRewardRates,
+                    (),
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "ActiveRewardRates",
+                        (),
+                        [
+                            177u8, 201u8, 40u8, 166u8, 159u8, 111u8, 32u8, 5u8, 61u8, 144u8, 65u8,
+                            80u8, 130u8, 83u8, 155u8, 243u8, 216u8, 140u8, 230u8, 116u8, 57u8,
+                            115u8, 134u8, 55u8, 14u8, 181u8, 191u8, 237u8, 111u8, 203u8, 183u8,
+                            101u8,
+                        ],
+                    )
+                }
+                #[doc = " Store custom reward rates when miner is active."]
+                pub fn active_reward_rates(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::active_reward_rates::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::active_reward_rates::Param0,
+                    >,
+                    types::active_reward_rates::ActiveRewardRates,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "ActiveRewardRates",
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
+                        ),
+                        [
+                            177u8, 201u8, 40u8, 166u8, 159u8, 111u8, 32u8, 5u8, 61u8, 144u8, 65u8,
+                            80u8, 130u8, 83u8, 155u8, 243u8, 216u8, 140u8, 230u8, 116u8, 57u8,
+                            115u8, 134u8, 55u8, 14u8, 181u8, 191u8, 237u8, 111u8, 203u8, 183u8,
+                            101u8,
+                        ],
+                    )
+                }
+                #[doc = " Store custom reward rates when miner is idle."]
+                pub fn idle_reward_rates_iter(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::idle_reward_rates::IdleRewardRates,
+                    (),
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "IdleRewardRates",
+                        (),
+                        [
+                            175u8, 122u8, 139u8, 169u8, 32u8, 121u8, 218u8, 157u8, 12u8, 103u8,
+                            183u8, 2u8, 126u8, 204u8, 48u8, 62u8, 134u8, 222u8, 15u8, 173u8, 119u8,
+                            130u8, 83u8, 241u8, 139u8, 173u8, 3u8, 236u8, 238u8, 150u8, 180u8,
+                            170u8,
+                        ],
+                    )
+                }
+                #[doc = " Store custom reward rates when miner is idle."]
+                pub fn idle_reward_rates(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::idle_reward_rates::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::idle_reward_rates::Param0,
+                    >,
+                    types::idle_reward_rates::IdleRewardRates,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "Payment",
+                        "IdleRewardRates",
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
+                        ),
+                        [
+                            175u8, 122u8, 139u8, 169u8, 32u8, 121u8, 218u8, 157u8, 12u8, 103u8,
+                            183u8, 2u8, 126u8, 204u8, 48u8, 62u8, 134u8, 222u8, 15u8, 173u8, 119u8,
+                            130u8, 83u8, 241u8, 139u8, 173u8, 3u8, 236u8, 238u8, 150u8, 180u8,
+                            170u8,
                         ],
                     )
                 }
@@ -14381,6 +15128,522 @@ pub mod api {
                     ::subxt::ext::subxt_core::constants::address::StaticAddress::new_static(
                         "ZKVerifier",
                         "MaxVerificationKeyLength",
+                        [
+                            98u8, 252u8, 116u8, 72u8, 26u8, 180u8, 225u8, 83u8, 200u8, 157u8,
+                            125u8, 151u8, 53u8, 76u8, 168u8, 26u8, 10u8, 9u8, 98u8, 68u8, 9u8,
+                            178u8, 197u8, 113u8, 31u8, 79u8, 200u8, 90u8, 203u8, 100u8, 41u8,
+                            145u8,
+                        ],
+                    )
+                }
+            }
+        }
+    }
+    pub mod neuro_zk {
+        use super::root_mod;
+        use super::runtime_types;
+        #[doc = "Errors inform users that something went wrong."]
+        pub type Error = runtime_types::pallet_neuro_zk::pallet::Error;
+        #[doc = "Contains a variant per dispatchable extrinsic that this pallet has."]
+        pub type Call = runtime_types::pallet_neuro_zk::pallet::Call;
+        pub mod calls {
+            use super::root_mod;
+            use super::runtime_types;
+            type DispatchError = runtime_types::sp_runtime::DispatchError;
+            pub mod types {
+                use super::runtime_types;
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Requests a nzk proof from the given task"]
+                pub struct RequestProof {
+                    pub task_id: request_proof::TaskId,
+                }
+                pub mod request_proof {
+                    use super::runtime_types;
+                    pub type TaskId = ::core::primitive::u64;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for RequestProof {
+                    const PALLET: &'static str = "NeuroZk";
+                    const CALL: &'static str = "request_proof";
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Submits a nzk proof from the given task"]
+                pub struct SubmitProof {
+                    pub task_id: submit_proof::TaskId,
+                    pub proof: submit_proof::Proof,
+                }
+                pub mod submit_proof {
+                    use super::runtime_types;
+                    pub type TaskId = ::core::primitive::u64;
+                    pub type Proof = runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                        ::core::primitive::u8,
+                    >;
+                }
+                impl ::subxt::ext::subxt_core::blocks::StaticExtrinsic for SubmitProof {
+                    const PALLET: &'static str = "NeuroZk";
+                    const CALL: &'static str = "submit_proof";
+                }
+            }
+            pub struct TransactionApi;
+            impl TransactionApi {
+                #[doc = "Requests a nzk proof from the given task"]
+                pub fn request_proof(
+                    &self,
+                    task_id: types::request_proof::TaskId,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::RequestProof>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "NeuroZk",
+                        "request_proof",
+                        types::RequestProof { task_id },
+                        [
+                            7u8, 238u8, 41u8, 83u8, 144u8, 109u8, 250u8, 119u8, 162u8, 216u8,
+                            146u8, 173u8, 11u8, 224u8, 129u8, 57u8, 107u8, 69u8, 140u8, 98u8, 89u8,
+                            55u8, 26u8, 214u8, 67u8, 79u8, 122u8, 233u8, 77u8, 234u8, 239u8, 204u8,
+                        ],
+                    )
+                }
+                #[doc = "Submits a nzk proof from the given task"]
+                pub fn submit_proof(
+                    &self,
+                    task_id: types::submit_proof::TaskId,
+                    proof: types::submit_proof::Proof,
+                ) -> ::subxt::ext::subxt_core::tx::payload::StaticPayload<types::SubmitProof>
+                {
+                    ::subxt::ext::subxt_core::tx::payload::StaticPayload::new_static(
+                        "NeuroZk",
+                        "submit_proof",
+                        types::SubmitProof { task_id, proof },
+                        [
+                            94u8, 161u8, 96u8, 164u8, 30u8, 218u8, 222u8, 133u8, 175u8, 93u8,
+                            126u8, 236u8, 189u8, 228u8, 68u8, 217u8, 231u8, 179u8, 143u8, 30u8,
+                            188u8, 101u8, 118u8, 24u8, 10u8, 83u8, 151u8, 66u8, 244u8, 133u8,
+                            219u8, 250u8,
+                        ],
+                    )
+                }
+            }
+        }
+        #[doc = "The `Event` enum contains the various events that can be emitted by this pallet."]
+        #[doc = "Events are emitted when significant actions or state changes happen in the pallet."]
+        pub type Event = runtime_types::pallet_neuro_zk::pallet::Event;
+        pub mod events {
+            use super::runtime_types;
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            #[doc = "Emitted when a proof has been requested."]
+            pub struct NzkProofRequested {
+                pub requesting_account: nzk_proof_requested::RequestingAccount,
+                pub task_id: nzk_proof_requested::TaskId,
+            }
+            pub mod nzk_proof_requested {
+                use super::runtime_types;
+                pub type RequestingAccount = ::subxt::ext::subxt_core::utils::AccountId32;
+                pub type TaskId = ::core::primitive::u64;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for NzkProofRequested {
+                const PALLET: &'static str = "NeuroZk";
+                const EVENT: &'static str = "NzkProofRequested";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            #[doc = "Emitted when a proof has been submitted."]
+            pub struct NzkProofSubmitted {
+                pub submitting_miner: nzk_proof_submitted::SubmittingMiner,
+                pub task_id: nzk_proof_submitted::TaskId,
+            }
+            pub mod nzk_proof_submitted {
+                use super::runtime_types;
+                pub type SubmittingMiner = ::subxt::ext::subxt_core::utils::AccountId32;
+                pub type TaskId = ::core::primitive::u64;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for NzkProofSubmitted {
+                const PALLET: &'static str = "NeuroZk";
+                const EVENT: &'static str = "NzkProofSubmitted";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            #[doc = "Emitted when a proof has successfully been verified after aggregation."]
+            pub struct NzkProofVerified {
+                pub task_id: nzk_proof_verified::TaskId,
+                pub last_block_processed: nzk_proof_verified::LastBlockProcessed,
+            }
+            pub mod nzk_proof_verified {
+                use super::runtime_types;
+                pub type TaskId = ::core::primitive::u64;
+                pub type LastBlockProcessed = ::core::primitive::u32;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for NzkProofVerified {
+                const PALLET: &'static str = "NeuroZk";
+                const EVENT: &'static str = "NzkProofVerified";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            #[doc = "Emitted when a proof has been rejected after aggregation."]
+            pub struct NzkProofRejected {
+                pub task_id: nzk_proof_rejected::TaskId,
+                pub last_block_processed: nzk_proof_rejected::LastBlockProcessed,
+            }
+            pub mod nzk_proof_rejected {
+                use super::runtime_types;
+                pub type TaskId = ::core::primitive::u64;
+                pub type LastBlockProcessed = ::core::primitive::u32;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for NzkProofRejected {
+                const PALLET: &'static str = "NeuroZk";
+                const EVENT: &'static str = "NzkProofRejected";
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            #[doc = "Event emitted when the last block is updated after clearing data for the current period."]
+            #[doc = "This indicates that data from the oracle has been successfully processed and cleared for the given block range."]
+            #[doc = ""]
+            #[doc = "- `block_number`: The block number at which the clearing occurred."]
+            pub struct LastBlockUpdated {
+                pub block_number: last_block_updated::BlockNumber,
+            }
+            pub mod last_block_updated {
+                use super::runtime_types;
+                pub type BlockNumber = ::core::primitive::u32;
+            }
+            impl ::subxt::ext::subxt_core::events::StaticEvent for LastBlockUpdated {
+                const PALLET: &'static str = "NeuroZk";
+                const EVENT: &'static str = "LastBlockUpdated";
+            }
+        }
+        pub mod storage {
+            use super::runtime_types;
+            pub mod types {
+                use super::runtime_types;
+                pub mod requested_proofs {
+                    use super::runtime_types;
+                    pub type RequestedProofs =
+                        runtime_types::cyborg_primitives::zkml::ProofVerificationStage;
+                    pub type Param0 = ::core::primitive::u64;
+                }
+                pub mod verification_results_per_proof {
+                    use super::runtime_types;
+                    pub type VerificationResultsPerProof =
+                        runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                            runtime_types::pallet_neuro_zk::VerificationResult<
+                                ::core::primitive::u32,
+                            >,
+                        >;
+                    pub type Param0 = ::core::primitive::u64;
+                }
+                pub mod submitted_per_proof {
+                    use super::runtime_types;
+                    pub type SubmittedPerProof = ::core::primitive::bool;
+                    pub type Param0 = ::subxt::ext::subxt_core::utils::AccountId32;
+                    pub type Param1 = ::core::primitive::u64;
+                }
+            }
+            pub struct StorageApi;
+            impl StorageApi {
+                #[doc = " Keeps track of if a proof is already being processed, so that the user can't request more"]
+                pub fn requested_proofs_iter(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::requested_proofs::RequestedProofs,
+                    (),
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "RequestedProofs",
+                        (),
+                        [
+                            68u8, 4u8, 126u8, 10u8, 3u8, 138u8, 182u8, 38u8, 39u8, 130u8, 57u8,
+                            103u8, 42u8, 82u8, 155u8, 237u8, 49u8, 184u8, 196u8, 158u8, 129u8,
+                            74u8, 202u8, 233u8, 197u8, 217u8, 207u8, 199u8, 57u8, 118u8, 7u8, 69u8,
+                        ],
+                    )
+                }
+                #[doc = " Keeps track of if a proof is already being processed, so that the user can't request more"]
+                pub fn requested_proofs(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::requested_proofs::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::requested_proofs::Param0,
+                    >,
+                    types::requested_proofs::RequestedProofs,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "RequestedProofs",
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
+                        ),
+                        [
+                            68u8, 4u8, 126u8, 10u8, 3u8, 138u8, 182u8, 38u8, 39u8, 130u8, 57u8,
+                            103u8, 42u8, 82u8, 155u8, 237u8, 49u8, 184u8, 196u8, 158u8, 129u8,
+                            74u8, 202u8, 233u8, 197u8, 217u8, 207u8, 199u8, 57u8, 118u8, 7u8, 69u8,
+                        ],
+                    )
+                }
+                #[doc = " Stores the verification results for each neuro-zk task."]
+                #[doc = " The result is provided by different oracle feeders, and the data is collected and aggregated to calculate"]
+                #[doc = " the overall status for each task."]
+                #[doc = ""]
+                #[doc = " - The storage key is a `TaskId`, which uniquely identifies the task."]
+                #[doc = " - The value is a bounded vector of `VerificationResult`, which contains the verification status."]
+                pub fn verification_results_per_proof_iter(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::verification_results_per_proof::VerificationResultsPerProof,
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "VerificationResultsPerProof",
+                        (),
+                        [
+                            68u8, 36u8, 125u8, 111u8, 139u8, 130u8, 134u8, 217u8, 75u8, 35u8, 33u8,
+                            84u8, 205u8, 232u8, 111u8, 115u8, 117u8, 229u8, 140u8, 48u8, 90u8,
+                            242u8, 106u8, 134u8, 61u8, 158u8, 22u8, 20u8, 47u8, 19u8, 10u8, 97u8,
+                        ],
+                    )
+                }
+                #[doc = " Stores the verification results for each neuro-zk task."]
+                #[doc = " The result is provided by different oracle feeders, and the data is collected and aggregated to calculate"]
+                #[doc = " the overall status for each task."]
+                #[doc = ""]
+                #[doc = " - The storage key is a `TaskId`, which uniquely identifies the task."]
+                #[doc = " - The value is a bounded vector of `VerificationResult`, which contains the verification status."]
+                pub fn verification_results_per_proof(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::verification_results_per_proof::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::verification_results_per_proof::Param0,
+                    >,
+                    types::verification_results_per_proof::VerificationResultsPerProof,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "VerificationResultsPerProof",
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
+                        ),
+                        [
+                            68u8, 36u8, 125u8, 111u8, 139u8, 130u8, 134u8, 217u8, 75u8, 35u8, 33u8,
+                            84u8, 205u8, 232u8, 111u8, 115u8, 117u8, 229u8, 140u8, 48u8, 90u8,
+                            242u8, 106u8, 134u8, 61u8, 158u8, 22u8, 20u8, 47u8, 19u8, 10u8, 97u8,
+                        ],
+                    )
+                }
+                #[doc = " Tracks whether a specific oracle provider has submitted zk proof data during the current period."]
+                #[doc = " This is used to prevent multiple submissions from the same oracle feeder within a period."]
+                #[doc = ""]
+                #[doc = " - The key is a tuple of the oracle feeder's account and required proof info `(T::AccountId, TaskId)`."]
+                #[doc = " - The value is a boolean indicating whether the oracle has already submitted data."]
+                pub fn submitted_per_proof_iter(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (),
+                    types::submitted_per_proof::SubmittedPerProof,
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "SubmittedPerProof",
+                        (),
+                        [
+                            38u8, 30u8, 125u8, 238u8, 237u8, 136u8, 52u8, 109u8, 247u8, 160u8,
+                            77u8, 227u8, 3u8, 41u8, 104u8, 221u8, 230u8, 0u8, 89u8, 85u8, 155u8,
+                            35u8, 70u8, 0u8, 24u8, 181u8, 173u8, 77u8, 141u8, 73u8, 242u8, 6u8,
+                        ],
+                    )
+                }
+                #[doc = " Tracks whether a specific oracle provider has submitted zk proof data during the current period."]
+                #[doc = " This is used to prevent multiple submissions from the same oracle feeder within a period."]
+                #[doc = ""]
+                #[doc = " - The key is a tuple of the oracle feeder's account and required proof info `(T::AccountId, TaskId)`."]
+                #[doc = " - The value is a boolean indicating whether the oracle has already submitted data."]
+                pub fn submitted_per_proof_iter1(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::submitted_per_proof::Param0>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                        types::submitted_per_proof::Param0,
+                    >,
+                    types::submitted_per_proof::SubmittedPerProof,
+                    (),
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "SubmittedPerProof",
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                            _0.borrow(),
+                        ),
+                        [
+                            38u8, 30u8, 125u8, 238u8, 237u8, 136u8, 52u8, 109u8, 247u8, 160u8,
+                            77u8, 227u8, 3u8, 41u8, 104u8, 221u8, 230u8, 0u8, 89u8, 85u8, 155u8,
+                            35u8, 70u8, 0u8, 24u8, 181u8, 173u8, 77u8, 141u8, 73u8, 242u8, 6u8,
+                        ],
+                    )
+                }
+                #[doc = " Tracks whether a specific oracle provider has submitted zk proof data during the current period."]
+                #[doc = " This is used to prevent multiple submissions from the same oracle feeder within a period."]
+                #[doc = ""]
+                #[doc = " - The key is a tuple of the oracle feeder's account and required proof info `(T::AccountId, TaskId)`."]
+                #[doc = " - The value is a boolean indicating whether the oracle has already submitted data."]
+                pub fn submitted_per_proof(
+                    &self,
+                    _0: impl ::core::borrow::Borrow<types::submitted_per_proof::Param0>,
+                    _1: impl ::core::borrow::Borrow<types::submitted_per_proof::Param1>,
+                ) -> ::subxt::ext::subxt_core::storage::address::StaticAddress<
+                    (
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                            types::submitted_per_proof::Param0,
+                        >,
+                        ::subxt::ext::subxt_core::storage::address::StaticStorageKey<
+                            types::submitted_per_proof::Param1,
+                        >,
+                    ),
+                    types::submitted_per_proof::SubmittedPerProof,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    ::subxt::ext::subxt_core::utils::Yes,
+                    (),
+                > {
+                    ::subxt::ext::subxt_core::storage::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "SubmittedPerProof",
+                        (
+                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                                _0.borrow(),
+                            ),
+                            ::subxt::ext::subxt_core::storage::address::StaticStorageKey::new(
+                                _1.borrow(),
+                            ),
+                        ),
+                        [
+                            38u8, 30u8, 125u8, 238u8, 237u8, 136u8, 52u8, 109u8, 247u8, 160u8,
+                            77u8, 227u8, 3u8, 41u8, 104u8, 221u8, 230u8, 0u8, 89u8, 85u8, 155u8,
+                            35u8, 70u8, 0u8, 24u8, 181u8, 173u8, 77u8, 141u8, 73u8, 242u8, 6u8,
+                        ],
+                    )
+                }
+            }
+        }
+        pub mod constants {
+            use super::runtime_types;
+            pub struct ConstantsApi;
+            impl ConstantsApi {
+                #[doc = " The percentage of active oracle entries needed to determine proof acceptance status"]
+                pub fn acceptance_threshold(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::constants::address::StaticAddress<
+                    ::core::primitive::u8,
+                > {
+                    ::subxt::ext::subxt_core::constants::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "AcceptanceThreshold",
+                        [
+                            141u8, 130u8, 11u8, 35u8, 226u8, 114u8, 92u8, 179u8, 168u8, 110u8,
+                            28u8, 91u8, 221u8, 64u8, 4u8, 148u8, 201u8, 193u8, 185u8, 66u8, 226u8,
+                            114u8, 97u8, 79u8, 62u8, 212u8, 202u8, 114u8, 237u8, 228u8, 183u8,
+                            165u8,
+                        ],
+                    )
+                }
+                #[doc = " Number of feed values needed to reach consensus on a proof"]
+                pub fn aggregate_length(
+                    &self,
+                ) -> ::subxt::ext::subxt_core::constants::address::StaticAddress<
+                    ::core::primitive::u32,
+                > {
+                    ::subxt::ext::subxt_core::constants::address::StaticAddress::new_static(
+                        "NeuroZk",
+                        "AggregateLength",
                         [
                             98u8, 252u8, 116u8, 72u8, 26u8, 180u8, 225u8, 83u8, 200u8, 157u8,
                             125u8, 151u8, 53u8, 76u8, 168u8, 26u8, 10u8, 9u8, 98u8, 68u8, 9u8,
@@ -14995,6 +16258,48 @@ pub mod api {
                 #[encode_as_type(
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
+                pub enum OracleKey<_0> {
+                    #[codec(index = 0)]
+                    Miner(runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<_0>),
+                    #[codec(index = 1)]
+                    NzkProofResult(::core::primitive::u64),
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub enum OracleValue {
+                    #[codec(index = 0)]
+                    MinerStatus(runtime_types::cyborg_primitives::oracle::ProcessStatus),
+                    #[codec(index = 1)]
+                    ZkProofResult(::core::primitive::bool),
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
                 pub struct OracleWorkerFormat<_0> {
                     pub id: (_0, ::core::primitive::u64),
                     pub worker_type: runtime_types::cyborg_primitives::worker::WorkerType,
@@ -15019,8 +16324,91 @@ pub mod api {
                     pub available: ::core::primitive::bool,
                 }
             }
+            pub mod payment {
+                use super::runtime_types;
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub struct RewardRates<_0> {
+                    pub cpu: _0,
+                    pub ram: _0,
+                    pub storage: _0,
+                }
+            }
             pub mod task {
                 use super::runtime_types;
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub struct NeuroZkTaskSubmissionDetails {
+                    pub zk_input: runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                        ::core::primitive::u8,
+                    >,
+                    pub zk_settings: runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                        ::core::primitive::u8,
+                    >,
+                    pub zk_verifying_key:
+                        runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                            ::core::primitive::u8,
+                        >,
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub struct NzkData<_0> {
+                    pub zk_input: runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                        ::core::primitive::u8,
+                    >,
+                    pub zk_settings: runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                        ::core::primitive::u8,
+                    >,
+                    pub zk_verifying_key:
+                        runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                            ::core::primitive::u8,
+                        >,
+                    pub zk_proof: ::core::option::Option<
+                        runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                            ::core::primitive::u8,
+                        >,
+                    >,
+                    pub last_proof_accepted: ::core::option::Option<(::core::primitive::bool, _0)>,
+                }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
@@ -15042,14 +16430,11 @@ pub mod api {
                     pub metadata: runtime_types::bounded_collections::bounded_vec::BoundedVec<
                         ::core::primitive::u8,
                     >,
-                    pub zk_files_cid: ::core::option::Option<
-                        runtime_types::bounded_collections::bounded_vec::BoundedVec<
-                            ::core::primitive::u8,
-                        >,
-                    >,
+                    pub nzk_data:
+                        ::core::option::Option<runtime_types::cyborg_primitives::task::NzkData<_1>>,
                     pub time_elapsed: ::core::option::Option<_1>,
                     pub average_cpu_percentage_use: ::core::option::Option<::core::primitive::u8>,
-                    pub task_type: runtime_types::cyborg_primitives::task::TaskType,
+                    pub task_kind: runtime_types::cyborg_primitives::task::TaskKind,
                     pub result: ::core::option::Option<
                         runtime_types::bounded_collections::bounded_vec::BoundedVec<
                             ::core::primitive::u8,
@@ -15057,6 +16442,28 @@ pub mod api {
                     >,
                     pub compute_hours_deposit: ::core::option::Option<_1>,
                     pub consume_compute_hours: ::core::option::Option<_1>,
+                    pub task_status: runtime_types::cyborg_primitives::task::TaskStatusType,
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub enum TaskKind {
+                    #[codec(index = 0)]
+                    NeuroZK,
+                    #[codec(index = 1)]
+                    OpenInference,
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -15077,78 +16484,11 @@ pub mod api {
                     #[codec(index = 0)]
                     Assigned,
                     #[codec(index = 1)]
-                    PendingValidation,
+                    Running,
                     #[codec(index = 2)]
-                    Completed,
+                    Stopped,
                     #[codec(index = 3)]
-                    Expired,
-                }
-                #[derive(
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                    Debug,
-                )]
-                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-                #[codec(dumb_trait_bound)]
-                #[decode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
-                )]
-                #[encode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
-                )]
-                pub enum TaskType {
-                    #[codec(index = 0)]
-                    Docker,
-                    #[codec(index = 1)]
-                    Executable,
-                    #[codec(index = 2)]
-                    ZK,
-                }
-                #[derive(
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                    Debug,
-                )]
-                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-                #[codec(dumb_trait_bound)]
-                #[decode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
-                )]
-                #[encode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
-                )]
-                pub struct VerificationHashes<_0> {
-                    pub account: _0,
-                    pub completed_hash:
-                        ::core::option::Option<::subxt::ext::subxt_core::utils::H256>,
-                }
-                #[derive(
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
-                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
-                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
-                    Debug,
-                )]
-                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
-                #[codec(dumb_trait_bound)]
-                #[decode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
-                )]
-                #[encode_as_type(
-                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
-                )]
-                pub struct Verifications<_0> {
-                    pub executor: runtime_types::cyborg_primitives::task::VerificationHashes<_0>,
-                    pub verifier: ::core::option::Option<
-                        runtime_types::cyborg_primitives::task::VerificationHashes<_0>,
-                    >,
-                    pub resolver: ::core::option::Option<
-                        runtime_types::cyborg_primitives::task::VerificationHashes<_0>,
-                    >,
+                    Vacated,
                 }
             }
             pub mod worker {
@@ -15192,7 +16532,7 @@ pub mod api {
                     pub owner: _0,
                     pub location: runtime_types::cyborg_primitives::worker::Location,
                     pub specs: runtime_types::cyborg_primitives::worker::WorkerSpecs,
-                    pub reputation: ::core::primitive::u8,
+                    pub reputation: runtime_types::cyborg_primitives::worker::WorkerReputation<_1>,
                     pub start_block: _1,
                     pub status: runtime_types::cyborg_primitives::worker::WorkerStatusType,
                     pub status_last_updated: _1,
@@ -15218,6 +16558,27 @@ pub mod api {
                     pub domain: runtime_types::bounded_collections::bounded_vec::BoundedVec<
                         ::core::primitive::u8,
                     >,
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub struct WorkerReputation<_0> {
+                    pub score: ::core::primitive::i32,
+                    pub last_updated: ::core::option::Option<_0>,
+                    pub violations: ::core::primitive::u32,
+                    pub successful_tasks: ::core::primitive::u32,
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -15261,6 +16622,8 @@ pub mod api {
                     Busy,
                     #[codec(index = 2)]
                     Inactive,
+                    #[codec(index = 3)]
+                    Suspended,
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -15282,6 +16645,32 @@ pub mod api {
                     Docker,
                     #[codec(index = 1)]
                     Executable,
+                }
+            }
+            pub mod zkml {
+                use super::runtime_types;
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub enum ProofVerificationStage {
+                    #[codec(index = 0)]
+                    Requested,
+                    #[codec(index = 1)]
+                    Pending,
+                    #[codec(index = 2)]
+                    Finalized,
                 }
             }
         }
@@ -15347,6 +16736,8 @@ pub mod api {
                 Payment(runtime_types::pallet_payment::pallet::Call),
                 #[codec(index = 46)]
                 ZKVerifier(runtime_types::pallet_zk_verifier::pallet::Call),
+                #[codec(index = 47)]
+                NeuroZk(runtime_types::pallet_neuro_zk::pallet::Call),
             }
             #[derive(
                 :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -15390,6 +16781,8 @@ pub mod api {
                 Payment(runtime_types::pallet_payment::pallet::Error),
                 #[codec(index = 46)]
                 ZKVerifier(runtime_types::pallet_zk_verifier::pallet::Error),
+                #[codec(index = 47)]
+                NeuroZk(runtime_types::pallet_neuro_zk::pallet::Error),
             }
             #[derive(
                 :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -15439,6 +16832,8 @@ pub mod api {
                 Payment(runtime_types::pallet_payment::pallet::Event),
                 #[codec(index = 46)]
                 ZKVerifier(runtime_types::pallet_zk_verifier::pallet::Event),
+                #[codec(index = 47)]
+                NeuroZk(runtime_types::pallet_neuro_zk::pallet::Event),
             }
             #[derive(
                 :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -16193,10 +17588,10 @@ pub mod api {
                     #[doc = "Require authorized operator."]
                     feed_values {
                         values: runtime_types::bounded_collections::bounded_vec::BoundedVec<(
-                            runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                            runtime_types::cyborg_primitives::oracle::OracleKey<
                                 ::subxt::ext::subxt_core::utils::AccountId32,
                             >,
-                            runtime_types::cyborg_primitives::oracle::ProcessStatus,
+                            runtime_types::cyborg_primitives::oracle::OracleValue,
                         )>,
                     },
                 }
@@ -16246,10 +17641,10 @@ pub mod api {
                     NewFeedData {
                         sender: ::subxt::ext::subxt_core::utils::AccountId32,
                         values: ::subxt::ext::subxt_core::alloc::vec::Vec<(
-                            runtime_types::cyborg_primitives::oracle::OracleWorkerFormat<
+                            runtime_types::cyborg_primitives::oracle::OracleKey<
                                 ::subxt::ext::subxt_core::utils::AccountId32,
                             >,
-                            runtime_types::cyborg_primitives::oracle::ProcessStatus,
+                            runtime_types::cyborg_primitives::oracle::OracleValue,
                         )>,
                     },
                 }
@@ -17119,6 +18514,14 @@ pub mod api {
                         worker_id: ::core::primitive::u64,
                         visibility: ::core::primitive::bool,
                     },
+                    #[codec(index = 3)]
+                    penalize_worker {
+                        worker_owner: ::subxt::ext::subxt_core::utils::AccountId32,
+                        worker_id: ::core::primitive::u64,
+                        worker_type: runtime_types::cyborg_primitives::worker::WorkerType,
+                        penalty: ::core::primitive::i32,
+                        reason: runtime_types::pallet_edge_connect::pallet::PenaltyReason,
+                    },
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -17147,6 +18550,12 @@ pub mod api {
                     #[codec(index = 2)]
                     #[doc = "Error indicating that the worker does not exist in the system when trying to perform actions (e.g., removal or status update)."]
                     WorkerDoesNotExist,
+                    #[codec(index = 3)]
+                    #[doc = "Worker is suspended and cannot perform actions."]
+                    WorkerSuspended,
+                    #[codec(index = 4)]
+                    #[doc = "Worker reputation is too low"]
+                    InsufficientReputation,
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -17202,6 +18611,52 @@ pub mod api {
                         worker_id: ::core::primitive::u64,
                         worker_status: runtime_types::cyborg_primitives::worker::WorkerStatusType,
                     },
+                    #[codec(index = 3)]
+                    #[doc = "Event emitted when a worker is penalized"]
+                    WorkerPenalized {
+                        worker: (
+                            ::subxt::ext::subxt_core::utils::AccountId32,
+                            ::core::primitive::u64,
+                        ),
+                        penalty: ::core::primitive::i32,
+                        reason: runtime_types::pallet_edge_connect::pallet::PenaltyReason,
+                    },
+                    #[codec(index = 4)]
+                    #[doc = "Event emitted when a worker is suspended"]
+                    WorkerSuspended {
+                        worker: (
+                            ::subxt::ext::subxt_core::utils::AccountId32,
+                            ::core::primitive::u64,
+                        ),
+                        until_block: ::core::primitive::u32,
+                    },
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                pub enum PenaltyReason {
+                    #[codec(index = 0)]
+                    TaskRejection,
+                    #[codec(index = 1)]
+                    FalseCompletion,
+                    #[codec(index = 2)]
+                    LateResponse,
+                    #[codec(index = 3)]
+                    SpamAttempt,
+                    #[codec(index = 4)]
+                    Other,
                 }
             }
         }
@@ -17571,7 +19026,7 @@ pub mod api {
                 >,
             }
         }
-        pub mod pallet_payment {
+        pub mod pallet_neuro_zk {
             use super::runtime_types;
             pub mod pallet {
                 use super::runtime_types;
@@ -17593,19 +19048,188 @@ pub mod api {
                 #[doc = "Contains a variant per dispatchable extrinsic that this pallet has."]
                 pub enum Call {
                     #[codec(index = 0)]
-                    #[doc = "Allows the admin (root) to set the price per compute hour."]
-                    set_price_per_hour { new_price: ::core::primitive::u128 },
+                    #[doc = "Requests a nzk proof from the given task"]
+                    request_proof { task_id: ::core::primitive::u64 },
                     #[codec(index = 1)]
-                    #[doc = "Allows the admin (root) to set the service provider's account."]
+                    #[doc = "Submits a nzk proof from the given task"]
+                    submit_proof {
+                        task_id: ::core::primitive::u64,
+                        proof: runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                            ::core::primitive::u8,
+                        >,
+                    },
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Errors inform users that something went wrong."]
+                pub enum Error {
+                    #[codec(index = 0)]
+                    #[doc = "The proof has already been requested and needs to be verified before a new one can be requested."]
+                    ProofAlreadyRequested,
+                    #[codec(index = 1)]
+                    #[doc = "The proof has already been submitted and another one cannot be submitted until a new one is requested."]
+                    ProofAlreadySubmitted,
+                    #[codec(index = 2)]
+                    #[doc = "The miner tried to submit a proof that wasn't requested."]
+                    ProofNotRequested,
+                    #[codec(index = 3)]
+                    #[doc = "The task for which the proof was requested is a non-neuro-zk task type."]
+                    InvalidTaskType,
+                    #[codec(index = 4)]
+                    #[doc = "The task for which the proof was requested does not exist."]
+                    TaskDoesNotExist,
+                }
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "The `Event` enum contains the various events that can be emitted by this pallet."]
+                #[doc = "Events are emitted when significant actions or state changes happen in the pallet."]
+                pub enum Event {
+                    #[codec(index = 0)]
+                    #[doc = "Emitted when a proof has been requested."]
+                    NzkProofRequested {
+                        requesting_account: ::subxt::ext::subxt_core::utils::AccountId32,
+                        task_id: ::core::primitive::u64,
+                    },
+                    #[codec(index = 1)]
+                    #[doc = "Emitted when a proof has been submitted."]
+                    NzkProofSubmitted {
+                        submitting_miner: ::subxt::ext::subxt_core::utils::AccountId32,
+                        task_id: ::core::primitive::u64,
+                    },
+                    #[codec(index = 2)]
+                    #[doc = "Emitted when a proof has successfully been verified after aggregation."]
+                    NzkProofVerified {
+                        task_id: ::core::primitive::u64,
+                        last_block_processed: ::core::primitive::u32,
+                    },
+                    #[codec(index = 3)]
+                    #[doc = "Emitted when a proof has been rejected after aggregation."]
+                    NzkProofRejected {
+                        task_id: ::core::primitive::u64,
+                        last_block_processed: ::core::primitive::u32,
+                    },
+                    #[codec(index = 4)]
+                    #[doc = "Event emitted when the last block is updated after clearing data for the current period."]
+                    #[doc = "This indicates that data from the oracle has been successfully processed and cleared for the given block range."]
+                    #[doc = ""]
+                    #[doc = "- `block_number`: The block number at which the clearing occurred."]
+                    LastBlockUpdated {
+                        block_number: ::core::primitive::u32,
+                    },
+                }
+            }
+            #[derive(
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                Debug,
+            )]
+            # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+            #[codec(dumb_trait_bound)]
+            #[decode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode")]
+            #[encode_as_type(crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode")]
+            pub struct VerificationResult<_0> {
+                pub is_accepted: ::core::primitive::bool,
+                pub block: _0,
+            }
+        }
+        pub mod pallet_payment {
+            use super::runtime_types;
+            pub mod pallet {
+                use super::runtime_types;
+                #[derive(
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
+                    :: subxt :: ext :: subxt_core :: ext :: codec :: Encode,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_decode :: DecodeAsType,
+                    :: subxt :: ext :: subxt_core :: ext :: scale_encode :: EncodeAsType,
+                    Debug,
+                )]
+                # [codec (crate = :: subxt :: ext :: subxt_core :: ext :: codec)]
+                #[codec(dumb_trait_bound)]
+                #[decode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_decode"
+                )]
+                #[encode_as_type(
+                    crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
+                )]
+                #[doc = "Declare callable extrinsics."]
+                pub enum Call {
+                    #[codec(index = 0)]
+                    #[doc = "Set the account that receives all payments."]
+                    #[doc = "Can only be set by root user"]
                     set_service_provider_account {
                         new_account: ::subxt::ext::subxt_core::utils::AccountId32,
                     },
-                    #[codec(index = 2)]
-                    #[doc = "Allows a user to purchase compute hours."]
-                    purchase_compute_hours { hours: ::core::primitive::u32 },
-                    #[codec(index = 3)]
+                    #[codec(index = 1)]
                     #[doc = "Allows a user to consume compute hours."]
                     consume_compute_hours { hours: ::core::primitive::u32 },
+                    #[codec(index = 2)]
+                    #[doc = "Admin sets a miner's reward rates for active and idle states."]
+                    #[doc = "In future we idle rates will be static , will be set through the runtime configuration"]
+                    set_reward_rates_for_miner {
+                        miner: ::subxt::ext::subxt_core::utils::AccountId32,
+                        active: runtime_types::cyborg_primitives::payment::RewardRates<
+                            ::core::primitive::u128,
+                        >,
+                        idle: runtime_types::cyborg_primitives::payment::RewardRates<
+                            ::core::primitive::u128,
+                        >,
+                    },
+                    #[codec(index = 3)]
+                    #[doc = "Called by a registered miner to report their usage."]
+                    record_usage {
+                        cpu: ::core::primitive::u8,
+                        ram: ::core::primitive::u8,
+                        storage: ::core::primitive::u8,
+                    },
+                    #[codec(index = 4)]
+                    #[doc = "Reward a miner for a given number of active and idle hours."]
+                    reward_miner {
+                        active_hours: ::core::primitive::u32,
+                        idle_hours: ::core::primitive::u32,
+                        miner: ::subxt::ext::subxt_core::utils::AccountId32,
+                    },
+                    #[codec(index = 5)]
+                    #[doc = "Transfer all pending rewards to miners from the provider account."]
+                    distribute_rewards,
+                    #[codec(index = 6)]
+                    #[doc = "Allows a new user to subscribe to compute by paying upfront."]
+                    subscribe { hours: ::core::primitive::u32 },
+                    #[codec(index = 7)]
+                    #[doc = "Lets an existing user add more hours to their subscription."]
+                    add_hours { extra_hours: ::core::primitive::u32 },
+                    #[codec(index = 8)]
+                    #[doc = "Admin sets the global subscription cost per compute hour."]
+                    set_subscription_fee_per_hour {
+                        new_fee_per_hour: ::core::primitive::u128,
+                    },
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -17622,20 +19246,28 @@ pub mod api {
                 #[encode_as_type(
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
-                #[doc = "Pallet Errors"]
+                #[doc = "Custom pallet errors."]
                 pub enum Error {
                     #[codec(index = 0)]
-                    #[doc = "The user's balance is insufficient for the transaction."]
                     InsufficientBalance,
                     #[codec(index = 1)]
-                    #[doc = "The user does not have enough compute hours to consume."]
                     InsufficientComputeHours,
                     #[codec(index = 2)]
-                    #[doc = "The user has provided an invalid input for the number of hours (e.g., 0)."]
                     InvalidHoursInput,
                     #[codec(index = 3)]
-                    #[doc = "The service provider account is not found."]
                     ServiceProviderAccountNotFound,
+                    #[codec(index = 4)]
+                    InvalidUsageInput,
+                    #[codec(index = 5)]
+                    NotRegisteredMiner,
+                    #[codec(index = 6)]
+                    InvalidFee,
+                    #[codec(index = 7)]
+                    AlreadySubscribed,
+                    #[codec(index = 8)]
+                    SubscriptionExpired,
+                    #[codec(index = 9)]
+                    RewardRateNotSet,
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -17652,27 +19284,50 @@ pub mod api {
                 #[encode_as_type(
                     crate_path = ":: subxt :: ext :: subxt_core :: ext :: scale_encode"
                 )]
-                #[doc = "The `Event` enum of this pallet"]
+                #[doc = "Event declarations for extrinsic calls."]
                 pub enum Event {
                     #[codec(index = 0)]
-                    #[doc = "Event triggered when compute hours are consumed."]
                     HoursConsumed(
                         ::subxt::ext::subxt_core::utils::AccountId32,
                         ::core::primitive::u32,
                     ),
                     #[codec(index = 1)]
-                    #[doc = "Event triggered when compute hours are purchased."]
-                    HoursPurchased(
+                    ServiceProviderAccountSet(::subxt::ext::subxt_core::utils::AccountId32),
+                    #[codec(index = 2)]
+                    MinerUsageRecorded(
                         ::subxt::ext::subxt_core::utils::AccountId32,
-                        ::core::primitive::u32,
+                        ::core::primitive::u8,
+                        ::core::primitive::u8,
+                        ::core::primitive::u8,
+                    ),
+                    #[codec(index = 3)]
+                    MinerRewarded(
+                        ::subxt::ext::subxt_core::utils::AccountId32,
                         ::core::primitive::u128,
                     ),
-                    #[codec(index = 2)]
-                    #[doc = "Event triggered when the admin sets a new price per hour."]
-                    PricePerHourSet(::core::primitive::u128),
-                    #[codec(index = 3)]
-                    #[doc = "Event triggered when the admin sets a new service provider account."]
-                    ServiceProviderAccountSet(::subxt::ext::subxt_core::utils::AccountId32),
+                    #[codec(index = 4)]
+                    SubscriptionFeeSet(::core::primitive::u128),
+                    #[codec(index = 5)]
+                    ConsumerSubscribed(
+                        ::subxt::ext::subxt_core::utils::AccountId32,
+                        ::core::primitive::u128,
+                        ::core::primitive::u32,
+                    ),
+                    #[codec(index = 6)]
+                    SubscriptionRenewed(
+                        ::subxt::ext::subxt_core::utils::AccountId32,
+                        ::core::primitive::u32,
+                    ),
+                    #[codec(index = 7)]
+                    RewardRatesUpdated {
+                        miner: ::subxt::ext::subxt_core::utils::AccountId32,
+                        active: runtime_types::cyborg_primitives::payment::RewardRates<
+                            ::core::primitive::u128,
+                        >,
+                        idle: runtime_types::cyborg_primitives::payment::RewardRates<
+                            ::core::primitive::u128,
+                        >,
+                    },
                 }
             }
         }
@@ -18021,41 +19676,37 @@ pub mod api {
                 pub enum Call {
                     #[codec(index = 0)]
                     #[doc = "Creates a new task and assigns it to a randomly selected worker."]
+                    #[doc = "None -> Assigned"]
                     task_scheduler {
-                        task_type: runtime_types::cyborg_primitives::task::TaskType,
-                        task_data: runtime_types::bounded_collections::bounded_vec::BoundedVec<
+                        task_kind: runtime_types::cyborg_primitives::task::TaskKind,
+                        task_location: runtime_types::bounded_collections::bounded_vec::BoundedVec<
                             ::core::primitive::u8,
                         >,
-                        zk_files_cid: ::core::option::Option<
-                            runtime_types::bounded_collections::bounded_vec::BoundedVec<
-                                ::core::primitive::u8,
-                            >,
+                        nzk_info: ::core::option::Option<
+                            runtime_types::cyborg_primitives::task::NeuroZkTaskSubmissionDetails,
                         >,
                         worker_owner: ::subxt::ext::subxt_core::utils::AccountId32,
                         worker_id: ::core::primitive::u64,
                         compute_hours_deposit: ::core::option::Option<::core::primitive::u32>,
                     },
                     #[codec(index = 1)]
-                    #[doc = "Allows a worker to submit a completed task for verification by a verifier."]
-                    submit_completed_task {
-                        task_id: ::core::primitive::u64,
-                        completed_hash: ::subxt::ext::subxt_core::utils::H256,
-                        result: runtime_types::bounded_collections::bounded_vec::BoundedVec<
-                            ::core::primitive::u8,
-                        >,
-                    },
-                    #[codec(index = 2)]
-                    #[doc = "Verifies whether the submitted completed task is correct."]
-                    #[doc = "If verification fails, a new resolver is assigned to review the task."]
-                    verify_completed_task {
-                        task_id: ::core::primitive::u64,
-                        completed_hash: ::subxt::ext::subxt_core::utils::H256,
-                    },
-                    #[codec(index = 3)]
-                    #[doc = "Resolver finalizes the verification of a task in case of disputes."]
-                    resolve_completed_task {
-                        task_id: ::core::primitive::u64,
-                        completed_hash: ::subxt::ext::subxt_core::utils::H256,
+                    #[doc = "Miner confirms that it has gathered the data and is starting task execution."]
+                    #[doc = ""]
+                    #[doc = "Allowed only if task is still `Assigned`."]
+                    #[doc = "Changes task state to `Running` and starts aggregation of resource usage."]
+                    confirm_task_reception { task_id: ::core::primitive::u64 },
+                    #[codec(index = 5)]
+                    #[doc = "signals the miner to exit task execution and reset itself"]
+                    #[doc = "Admin will make status to stopped"]
+                    #[doc = "RUnning -> Stopped"]
+                    stop_task_and_vacate_miner { task_id: ::core::primitive::u64 },
+                    #[codec(index = 6)]
+                    #[doc = "miner confirms that it has reset itself"]
+                    #[doc = "Stopped to vacated"]
+                    confirm_miner_vacation { task_id: ::core::primitive::u64 },
+                    #[codec(index = 4)]
+                    set_gatekeeper {
+                        new_gatekeeper: ::subxt::ext::subxt_core::utils::AccountId32,
                     },
                 }
                 #[derive(
@@ -18077,44 +19728,34 @@ pub mod api {
                 #[doc = "<https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error>"]
                 pub enum Error {
                     #[codec(index = 0)]
-                    #[doc = "The provided task ID does not exist."]
-                    UnassignedTaskId,
+                    InvalidTaskState,
                     #[codec(index = 1)]
-                    #[doc = "The caller is not the task owner."]
-                    InvalidTaskOwner,
+                    NotTaskOwner,
                     #[codec(index = 2)]
-                    #[doc = "A task must be assigned before it can proceed to the next step."]
-                    RequireAssignedTask,
+                    UnexpectedZkFiles,
                     #[codec(index = 3)]
-                    #[doc = "A verifier must be assigned to the task."]
-                    RequireAssignedVerifier,
+                    TaskNotFound,
                     #[codec(index = 4)]
-                    #[doc = "A completed task's hash must be provided by the assigned verifier."]
-                    RequireAssignedVerifierCompletedHash,
+                    RequireComputeHoursDeposit,
                     #[codec(index = 5)]
-                    #[doc = "A resolver must be assigned to review the task."]
-                    RequireAssignedResolver,
+                    ZkFilesMissing,
                     #[codec(index = 6)]
-                    #[doc = "No workers are available for the task."]
                     NoWorkersAvailable,
                     #[codec(index = 7)]
-                    #[doc = "The task verification process cannot be found."]
-                    TaskVerificationNotFound,
+                    UnassignedTaskId,
                     #[codec(index = 8)]
-                    #[doc = "No new workers are available for the task reassignment."]
-                    NoNewWorkersAvailable,
+                    InvalidTaskOwner,
                     #[codec(index = 9)]
-                    #[doc = "The worker, to which the task should be assigned does not exist."]
-                    WorkerDoesNotExist,
+                    TaskVerificationNotFound,
                     #[codec(index = 10)]
-                    #[doc = "A compute hour deposit is required to schedule or proceed with the task."]
-                    RequireComputeHoursDeposit,
+                    RequireAssignedTask,
                     #[codec(index = 11)]
-                    #[doc = "The user has insufficient compute hours balance for the requested deposit."]
-                    InsufficientComputeHours,
+                    RequireAssignedVerifier,
                     #[codec(index = 12)]
-                    #[doc = "The user submitted a ZK task, but has not provided the required files for proof generation"]
-                    ZkFilesMissing,
+                    #[doc = "Account has exceeded task submission rate limit"]
+                    RateLimitExceeded,
+                    #[codec(index = 13)]
+                    WorkerDoesNotExist,
                 }
                 #[derive(
                     :: subxt :: ext :: subxt_core :: ext :: codec :: Decode,
@@ -18135,57 +19776,31 @@ pub mod api {
                 #[doc = "<https://paritytech.github.io/polkadot-sdk/master/polkadot_sdk_docs/guides/your_first_pallet/index.html#event-and-error>"]
                 pub enum Event {
                     #[codec(index = 0)]
-                    #[doc = "A task has been scheduled and assigned to a worker."]
+                    #[doc = "A new task has been scheduled and assigned to a worker."]
                     TaskScheduled {
                         assigned_worker: (
                             ::subxt::ext::subxt_core::utils::AccountId32,
                             ::core::primitive::u64,
                         ),
-                        task_type: runtime_types::cyborg_primitives::task::TaskType,
+                        task_kind: runtime_types::cyborg_primitives::task::TaskKind,
                         task_owner: ::subxt::ext::subxt_core::utils::AccountId32,
                         task_id: ::core::primitive::u64,
                         task: runtime_types::bounded_collections::bounded_vec::BoundedVec<
                             ::core::primitive::u8,
                         >,
-                        zk_files_cid: ::core::option::Option<
-                            runtime_types::bounded_collections::bounded_vec::BoundedVec<
-                                ::core::primitive::u8,
-                            >,
-                        >,
                     },
                     #[codec(index = 1)]
-                    #[doc = "A completed task has been submitted for verification."]
-                    SubmittedCompletedTask {
+                    #[doc = "A worker confirmed reception of task data and started execution."]
+                    TaskReceptionConfirmed {
                         task_id: ::core::primitive::u64,
-                        assigned_verifier: (
-                            ::subxt::ext::subxt_core::utils::AccountId32,
-                            ::core::primitive::u64,
-                        ),
+                        who: ::subxt::ext::subxt_core::utils::AccountId32,
                     },
                     #[codec(index = 2)]
-                    #[doc = "A resolver has been assigned to determine the correct result after verification failure."]
-                    VerifierResolverAssigned {
-                        task_id: ::core::primitive::u64,
-                        assigned_resolver: (
-                            ::subxt::ext::subxt_core::utils::AccountId32,
-                            ::core::primitive::u64,
-                        ),
-                    },
+                    #[doc = "Controller/admin requested to stop a running task."]
+                    TaskStopRequested { task_id: ::core::primitive::u64 },
                     #[codec(index = 3)]
-                    #[doc = "A completed task has been successfully verified."]
-                    VerifiedCompletedTask { task_id: ::core::primitive::u64 },
-                    #[codec(index = 4)]
-                    #[doc = "A completed task has been successfully resolved by the resolver."]
-                    ResolvedCompletedTask { task_id: ::core::primitive::u64 },
-                    #[codec(index = 5)]
-                    #[doc = "A task has been reassigned to a new worker."]
-                    TaskReassigned {
-                        task_id: ::core::primitive::u64,
-                        assigned_executor: (
-                            ::subxt::ext::subxt_core::utils::AccountId32,
-                            ::core::primitive::u64,
-                        ),
-                    },
+                    #[doc = "Miner confirmed that they have vacated/reset after stopping."]
+                    MinerVacated { task_id: ::core::primitive::u64 },
                 }
             }
         }
