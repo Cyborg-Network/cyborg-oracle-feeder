@@ -289,16 +289,40 @@ impl OracleFeeder for CyborgOracleFeeder {
                     );
 
                     let keypair = load_cyborg_test_key()?;
-                    let _ = client
+
+                    let tx_progress = client
                         .tx()
                         .sign_and_submit_then_watch_default(&feed_oracle_tx, &keypair)
                         .await
-                        .map(|e| {
-                            println!("Values submitted to oracle, waiting for transaction to be finalized...");
+                        .map_err(|e| {
+                            eprintln!("Extrinsic submission failed: {:?}", e);
                             e
-                        })?
-                        .wait_for_finalized_success()
-                        .await?;
+                        })?;
+
+                    println!("Extrinsic submitted. Waiting for inclusion...");
+
+                    let finalized = tx_progress.wait_for_finalized().await?;
+
+                    println!("Extrinsic finalized in block: {:?}", finalized.block_hash());
+
+                    let events = finalized.fetch_events().await?;
+
+                    for evt in events.iter() {
+                        match evt {
+                            Ok(ev) => {
+                                if let Some(system_event) = ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()? {
+                                    println!("Extrinsic failed with error: {:?}", system_event);
+                                    println!("Dispatch error: {:?}", system_event.dispatch_error);
+                                    return Err("Extrinsic failed on chain".into());
+                                } else if let Some(_) = ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()? {
+                                    println!("Extrinsic succeeded!");
+                                }
+                            }
+                            Err(e) => {
+                                println!("Error parsing event: {:?}", e);
+                            }
+                        }
+                    }
 
                     Ok(())
                 } else {

@@ -33,6 +33,7 @@ use crate::config::{config};
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let cli = Cli::parse();
+    dotenv::dotenv().ok();
 
     match &cli.command {
         Some(Commands::Start {
