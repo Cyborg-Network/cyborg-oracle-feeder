@@ -10,7 +10,7 @@ repository = "https://github.com/Cyborg-Network/cyborg-oracle-feeder/"
 publish = false
 
 [dependencies]
-ezkl = { git = "https://github.com/zkonduit/ezkl.git", tag = "v20.2.0" }
+ezkl = { git = "https://github.com/zkonduit/ezkl.git", tag = "v22.0.1" }
 async-trait = "0.1.83"
 clap = { version = "4.5.21", features = ["derive"] }
 rand = "0.8.5"
