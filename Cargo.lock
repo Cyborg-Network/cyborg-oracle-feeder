@@ -2195,7 +2195,7 @@ dependencies = [
 [[package]]
 name = "ezkl"
 version = "0.0.0"
-source = "git+https://github.com/zkonduit/ezkl.git?tag=v20.2.0#97e26ae5bf53e3694e6c7eb8be508b74c9bd357b"
+source = "git+https://github.com/zkonduit/ezkl.git?tag=v22.0.1#8015a17978615ed423ff8740b49add0c6be726c9"
 dependencies = [
  "alloy",
  "bincode",

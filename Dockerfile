@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     libzmq3-dev \
+    ca-certificates \
     && apt-get clean
 
 
@@ -31,6 +32,7 @@ RUN apt-get update && apt-get install -y \
     libssl3 \
     libffi-dev \
     libzmq3-dev \
+    ca-certificates \
     && apt-get clean
 
 
