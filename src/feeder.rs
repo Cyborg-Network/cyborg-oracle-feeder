@@ -33,6 +33,7 @@ use serde_aux::prelude::deserialize_bool_from_anything;
 use std::{fs::write, sync::Arc};
 use tempfile::tempdir;
 use crate::account::load_cyborg_test_key;
+use std::path::Path;
 
 pub struct SharedState {
     pub current_workers_data: Mutex<Option<Vec<(OracleKey<AccountId32>, OracleValue)>>>,
@@ -263,7 +264,16 @@ impl OracleFeeder for CyborgOracleFeeder {
             return Err("Zk proof not found".into());
         };
 
+        let persist_dir = format!("./zk-data/task-{}", task_id);
+        std::fs::create_dir_all(&persist_dir)?;
+
+        let proof_path = Path::new(&persist_dir).join("proof.json");
+        let vk_path = Path::new(&persist_dir).join("vk.key");
+        let srs_path = Path::new(&persist_dir).join("kzg.srs");
+        let settings_path = Path::new(&persist_dir).join("settings.json");
+
         // Write temp files
+        /* 
         let dir = match tempdir() {
             Ok(d) => d,
             Err(e) => {
@@ -276,6 +286,7 @@ impl OracleFeeder for CyborgOracleFeeder {
         let vk_path = dir.path().join("vk.key");
         let srs_path = dir.path().join("kzg.srs");
         let settings_path = dir.path().join("settings.json");
+        */
 
         if let Err(e) = write(&proof_path, proof.0.clone()) {
             eprintln!("Failed to write proof: {:?}", e);
@@ -308,6 +319,26 @@ impl OracleFeeder for CyborgOracleFeeder {
             eprintln!("Failed to run GetSrs: {:?}", e);
             return Err(e.into());
         }
+
+        
+
+        use sha2::{Sha256, Digest};
+
+        let original_srs_bytes = std::fs::read(&srs_path)?;
+        let hash = Sha256::digest(&original_srs_bytes);
+        println!("SRS HASH: {:x}", hash);
+
+        let orignal_proof_bytes = std::fs::read(&proof_path)?;
+        let hash = Sha256::digest(&orignal_proof_bytes);
+        println!("PROOF HASH: {:x}", hash);
+
+        let original_vk_bytes = std::fs::read(&vk_path)?;
+        let hash = Sha256::digest(&original_vk_bytes);
+        println!("VK HASH: {:x}", hash);
+
+        let original_settings_bytes = std::fs::read(&settings_path)?;
+        let hash = Sha256::digest(&original_settings_bytes);
+        println!("SETTINGS HASH: {:x}", hash);
 
         // Run Verify
         let string_result = match run(Verify {
