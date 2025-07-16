@@ -21,9 +21,9 @@ jobs:
       - name: Deploy to VPS
         run: |
           ssh -o StrictHostKeyChecking=no cyborg@20.93.0.136 << EOF
-            cd /home/cyborg/cyborg-proxy || exit 1
+            cd /home/cyborg/cyborg-oracle-feeder || exit 1
             git fetch origin v0.1
             git reset --hard origin/v0.1
             cargo build --release
-            sudo systemctl restart proxy.service
+            sudo systemctl restart oracle-feeder.service
           EOF
