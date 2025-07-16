@@ -1,0 +1,29 @@
+name: Deploy to VPS on v0.1
+
+on:
+  push:
+    branches:
+      - v0.1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_ALPHA_DEPLOY_KEY }}
+
+      - name: Deploy to VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no cyborg@20.93.0.136 << EOF
+            cd /home/cyborg/cyborg-proxy || exit 1
+            git fetch origin v0.1
+            git reset --hard origin/v0.1
+            cargo build --release
+            sudo systemctl restart proxy.service
+          EOF
