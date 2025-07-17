@@ -4,12 +4,20 @@ use crate::substrate_interface::api::runtime_types::cyborg_primitives::oracle::{
 use async_trait::async_trait;
 use ezkl::Commitments;
 use reqwest::Client;
-use subxt::{utils::AccountId32};
+use subxt::utils::AccountId32;
 use subxt_signer::sr25519::Keypair;
-use tokio::{sync::{Mutex, RwLock}, time::{sleep, /*Instant, */ Duration}};
+use tokio::{
+    sync::{Mutex, RwLock},
+    time::{sleep, /*Instant, */ Duration},
+};
+
+use crate::tx_queue::{TxOutput, TRANSACTION_QUEUE};
+
 //use rand::rngs::StdRng;
 //use rand::{Rng, SeedableRng};
 //use crate::substrate_interface::api::edge_connect::storage::types::executable_workers;
+use crate::account::load_cyborg_test_key;
+use crate::config::CLIENT;
 use crate::substrate_interface::{
     self,
     api::{
@@ -27,17 +35,16 @@ use ezkl::{
     commands::Commands::{GetSrs, Verify},
     execute::run,
 };
-use crate::config::{CLIENT};
 use serde::Deserialize;
 use serde_aux::prelude::deserialize_bool_from_anything;
 use std::{fs::write, sync::Arc};
 use tempfile::tempdir;
-use crate::account::load_cyborg_test_key;
 
 pub struct SharedState {
     pub current_workers_data: Mutex<Option<Vec<(OracleKey<AccountId32>, OracleValue)>>>,
 }
 
+#[allow(dead_code)]
 pub struct CyborgOracleFeeder {
     pub keypair: Arc<RwLock<Keypair>>,
     pub shared_state: Arc<SharedState>,
@@ -131,7 +138,8 @@ pub trait OracleFeeder {
 #[async_trait]
 impl OracleFeeder for CyborgOracleFeeder {
     async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let mut blocks = CLIENT.get()
+        let mut blocks = CLIENT
+            .get()
             .ok_or("Failed to get client")?
             .blocks()
             .subscribe_finalized()
@@ -230,7 +238,7 @@ impl OracleFeeder for CyborgOracleFeeder {
             .await?
             .fetch(&task_address)
             .await?;
-
+    
         if let Some(task) = task {
             if let Some(nzk_data) = task.nzk_data {
                 if let Some(proof) = nzk_data.zk_proof {
@@ -239,11 +247,11 @@ impl OracleFeeder for CyborgOracleFeeder {
                     let vk_path = dir.path().join("vk.key");
                     let srs_path = dir.path().join("kzg.srs");
                     let settings_path = dir.path().join("settings.json");
-
+    
                     write(&proof_path, proof.0)?;
                     write(&vk_path, nzk_data.zk_verifying_key.0)?;
                     write(&settings_path, nzk_data.zk_settings.0)?;
-
+    
                     let _ = run(GetSrs {
                         srs_path: Some(srs_path.clone()),
                         settings_path: Some(settings_path.clone()),
@@ -251,8 +259,7 @@ impl OracleFeeder for CyborgOracleFeeder {
                         commitment: Some(Commitments::KZG),
                     })
                     .await?;
-
-                    //TODO obv it's nasty that this returns a string, but ezkl verification options will change with next release (verification via bytearrray), so this isn't final anyway
+    
                     let string_result = run(Verify {
                         settings_path: Some(settings_path),
                         proof_path: Some(proof_path),
@@ -261,69 +268,78 @@ impl OracleFeeder for CyborgOracleFeeder {
                         reduced_srs: None,
                     })
                     .await?;
-
+    
                     println!("Verification result: {}", string_result);
-
-                    let bool_result: bool;
-
-                    match string_result.as_str() {
-                        "true" => bool_result = true,
-                        "false" => bool_result = false,
+    
+                    let bool_result = match string_result.as_str() {
+                        "true" => true,
+                        "false" => false,
                         _ => return Err("Verification failed".into()),
                     };
-
+    
                     let result: (OracleKey<AccountId32>, OracleValue) = (
                         OracleKey::NzkProofResult(task_id),
                         OracleValue::ZkProofResult(bool_result),
                     );
-
+    
                     let result = vec![result];
-
-                    let feed_oracle_tx = SubstrateApi::tx()
-                        .oracle()
-                        .feed_values(BoundedVec(result));
-
-                    println!(
-                        "Feed Oracle NeuroZk Parameters: {:?}",
-                        feed_oracle_tx.call_data()
-                    );
-
-                    let keypair = load_cyborg_test_key()?;
-
-                    let tx_progress = client
-                        .tx()
-                        .sign_and_submit_then_watch_default(&feed_oracle_tx, &keypair)
-                        .await
-                        .map_err(|e| {
-                            eprintln!("Extrinsic submission failed: {:?}", e);
-                            e
-                        })?;
-
-                    println!("Extrinsic submitted. Waiting for inclusion...");
-
-                    let finalized = tx_progress.wait_for_finalized().await?;
-
-                    println!("Extrinsic finalized in block: {:?}", finalized.block_hash());
-
-                    let events = finalized.fetch_events().await?;
-
-                    for evt in events.iter() {
-                        match evt {
-                            Ok(ev) => {
-                                if let Some(system_event) = ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()? {
-                                    println!("Extrinsic failed with error: {:?}", system_event);
-                                    println!("Dispatch error: {:?}", system_event.dispatch_error);
-                                    return Err("Extrinsic failed on chain".into());
-                                } else if let Some(_) = ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()? {
-                                    println!("Extrinsic succeeded!");
+                    
+                    // Create the transaction inside the closure
+                    let queue = TRANSACTION_QUEUE.get().ok_or("Transaction queue not initialized")?;
+                    
+                    let rx = queue.enqueue(move || {
+                        {
+                        let value = result.clone();
+                        async move {
+                            let client = CLIENT.get().ok_or("Failed to get client")?;
+                            let keypair = load_cyborg_test_key()?;
+                            
+                            // Recreate the transaction inside the closure
+                            let feed_oracle_tx = SubstrateApi::tx()
+                                .oracle()
+                                .feed_values(BoundedVec(value));
+    
+                            println!("Feed Oracle NeuroZk Parameters: {:?}", feed_oracle_tx.call_data());
+                            
+                            let tx_progress = client
+                                .tx()
+                                .sign_and_submit_then_watch_default(&feed_oracle_tx, &keypair)
+                                .await
+                                .map_err(|e| {
+                                    log::error!("Extrinsic submission failed: {:?}", e);
+                                    e
+                                })?;
+    
+                            log::info!("Extrinsic submitted. Waiting for inclusion...");
+    
+                            let finalized = tx_progress.wait_for_finalized().await?;
+                            log::info!("Extrinsic finalized in block: {:?}", finalized.block_hash());
+    
+                            let events = finalized.fetch_events().await?;
+    
+                            for evt in events.iter() {
+                                match evt {
+                                    Ok(ev) => {
+                                        if let Ok(Some(system_event)) = ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>() {
+                                            log::error!("Extrinsic failed with error: {:?}", system_event);
+                                            log::error!("Dispatch error: {:?}", system_event.dispatch_error);
+                                            return Err("Extrinsic failed on chain".into());
+                                        } else if let Ok(Some(_)) = ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>() {
+                                            log::info!("Extrinsic succeeded!");
+                                        }
+                                    }
+                                    Err(e) => {
+                                        log::error!("Error parsing event: {:?}", e);
+                                    }
                                 }
                             }
-                            Err(e) => {
-                                println!("Error parsing event: {:?}", e);
-                            }
+                            
+                            Ok(TxOutput::ProofVerificationSuccess)
                         }
-                    }
-
+                        }
+                    }).await?;
+                    
+                    rx.await??;
                     Ok(())
                 } else {
                     Err("Zk proof not found".into())
@@ -397,8 +413,7 @@ impl OracleFeeder for CyborgOracleFeeder {
             ));
         }
 
-        let mut miner_data = 
-            self.shared_state.current_workers_data.lock().await;
+        let mut miner_data = self.shared_state.current_workers_data.lock().await;
 
         *miner_data = Some(worker_data);
 
@@ -463,38 +478,52 @@ impl OracleFeeder for CyborgOracleFeeder {
         }
     }
 
+
+    
     async fn feed(&self) -> Result<(), Box<dyn std::error::Error>> {
         let lock = self.shared_state.current_workers_data.lock().await;
         if let Some(workers_data) = lock.as_ref() {
-            // TODO: Since a bound vector is being submitted (and it also wouldn't make sense otherwise) the feeder can only cover a certain amount of workers. A mechanism needs to be implemented that disteributes workers to be checked between different oracle feeders.
-
-            let feed_oracle_tx = SubstrateApi::tx()
-                .oracle()
-                .feed_values(BoundedVec(workers_data.clone()));
-
-            println!(
-                "Feed Oracle Miner Status Parameters: {:?}",
-                feed_oracle_tx.call_data()
-            );
-
-            let client = CLIENT.get().ok_or("Failed to get client")?;
-            let keypair = load_cyborg_test_key()?;
-            let _ = client
-                .tx()
-                .sign_and_submit_then_watch_default(&feed_oracle_tx, &keypair)
-                .await
-                .map(|e| {
-                    println!(
-                        "Values submitted to oracle, waiting for transaction to be finalized..."
+            let workers_data = workers_data.clone();
+            
+            // Get the transaction queue
+            let queue = TRANSACTION_QUEUE.get().ok_or("Transaction queue not initialized")?;
+            
+            // Enqueue the feed operation
+            let rx = queue.enqueue(move || {
+                let workers_data = workers_data.clone();
+                async move {
+                    let client = CLIENT.get().ok_or("Failed to get client")?;
+                    let keypair = load_cyborg_test_key()?;
+                    
+                    let feed_oracle_tx = SubstrateApi::tx()
+                        .oracle()
+                        .feed_values(BoundedVec(workers_data));
+                    
+                    log::info!(
+                        "Feed Oracle Miner Status Parameters: {:?}",
+                        feed_oracle_tx.call_data()
                     );
-                    e
-                })?
-                .wait_for_finalized_success()
-                .await?;
-
+                    
+                    let _ = client
+                        .tx()
+                        .sign_and_submit_then_watch_default(&feed_oracle_tx, &keypair)
+                        .await
+                        .map_err(|e| {
+                            log::error!("Failed to submit transaction: {}", e);
+                            e
+                        })?
+                        .wait_for_finalized_success()
+                        .await?;
+                    
+                    Ok(TxOutput::OracleFeedSuccess)
+                }
+            }).await?;
+            
+            // Wait for the transaction to complete
+            rx.await??;
             Ok(())
         } else {
-            println!("No miner data available to feed.");
+            log::warn!("No miner data available to feed.");
             Err("No miner data available to feed.".into())
         }
     }

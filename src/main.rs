@@ -1,3 +1,4 @@
+mod account;
 mod builder;
 /// The main function serves as the entry point for the Cyborg Client application.
 /// It parses command-line arguments using Clap and executes the corresponding subcommand.
@@ -15,25 +16,29 @@ mod builder;
 ///
 /// Run the executable with appropriate subcommands to register or start mining a worker.
 mod cli;
-mod feeder;
-mod substrate_interface;
 mod config;
 mod error;
-mod account;
+mod feeder;
+mod substrate_interface;
+mod tx_queue;
 
 use std::sync::Arc;
 
+use crate::config::config;
 use builder::CyborgOracleFeederBuilder;
 use clap::Parser;
 use cli::{Cli, Commands};
 use feeder::OracleFeeder;
+use crate::tx_queue::init_transaction_queue;
 
-use crate::config::{config};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let cli = Cli::parse();
     dotenv::dotenv().ok();
+
+    // Initialize transaction queue
+    init_transaction_queue();
 
     match &cli.command {
         Some(Commands::Start {
@@ -50,7 +55,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
             // Build feeder
             let feeder = CyborgOracleFeederBuilder::default()
-                .keypair(&account_seed).expect("Failed to set keypair")
+                .keypair(&account_seed)
+                .expect("Failed to set keypair")
                 .build()
                 .await;
 
@@ -67,9 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             });
 
             // Spawn async worker check loop
-            let workers = tokio::spawn(async move {
-                feeder_for_workers.run_check_workers().await
-            });
+            let workers = tokio::spawn(async move { feeder_for_workers.run_check_workers().await });
 
             // Wait for both tasks
             let (proofs_result, workers_result) = tokio::join!(proofs, workers);
