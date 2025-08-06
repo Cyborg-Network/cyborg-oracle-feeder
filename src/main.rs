@@ -1,3 +1,5 @@
+mod account;
+mod block_tracker;
 mod builder;
 /// The main function serves as the entry point for the Cyborg Client application.
 /// It parses command-line arguments using Clap and executes the corresponding subcommand.
@@ -15,11 +17,10 @@ mod builder;
 ///
 /// Run the executable with appropriate subcommands to register or start mining a worker.
 mod cli;
-mod feeder;
-mod substrate_interface;
 mod config;
 mod error;
-mod account;
+mod feeder;
+mod substrate_interface;
 
 use std::sync::Arc;
 
@@ -28,7 +29,7 @@ use clap::Parser;
 use cli::{Cli, Commands};
 use feeder::OracleFeeder;
 
-use crate::config::{config};
+use crate::config::config;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
@@ -39,6 +40,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         Some(Commands::Start {
             parachain_url,
             account_seed,
+            data_dir,
         }) => {
             println!(
                 "Starting the oracle feeder. Parachain URL: {}",
@@ -48,11 +50,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             // Initialize config + global client/keypair once
             config(parachain_url).await;
 
+            // Build feeder with optional data directory
+            let mut builder = CyborgOracleFeederBuilder::default()
+                .keypair(&account_seed)
+                .expect("Failed to set keypair");
+
+            if let Some(dir) = data_dir {
+                builder = builder.with_data_dir(dir.to_path_buf());
+            }
+
             // Build feeder
-            let feeder = CyborgOracleFeederBuilder::default()
-                .keypair(&account_seed).expect("Failed to set keypair")
-                .build()
-                .await;
+            // let feeder = CyborgOracleFeederBuilder::default()
+            //     .keypair(&account_seed)
+            //     .expect("Failed to set keypair")
+            //     .build()
+            //     .await;
+
+            let feeder = builder.build().await?;
 
             let feeder = Arc::new(feeder);
 
@@ -67,9 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             });
 
             // Spawn async worker check loop
-            let workers = tokio::spawn(async move {
-                feeder_for_workers.run_check_workers().await
-            });
+            let workers = tokio::spawn(async move { feeder_for_workers.run_check_workers().await });
 
             // Wait for both tasks
             let (proofs_result, workers_result) = tokio::join!(proofs, workers);

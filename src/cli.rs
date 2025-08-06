@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser, PartialEq)]
@@ -31,5 +33,8 @@ pub enum Commands {
         /// Account Seed for the oracle feeder. Needs to be a registered as an oracle feeder on the cyborg parachain.
         #[clap(long, value_name = "ACCOUNT_SEED")]
         account_seed: String,
+
+        #[clap(long, value_name = "DATA_DIR")]
+        data_dir: Option<PathBuf>,
     },
 }
