@@ -35,18 +35,17 @@ use ezkl::{
 };
 use serde::Deserialize;
 use serde_aux::prelude::deserialize_bool_from_anything;
-use std::{fs::write, path::PathBuf, sync::Arc};
+use std::{fs::write, sync::Arc};
 use tempfile::tempdir;
 
 pub struct SharedState {
     pub current_workers_data: Mutex<Option<Vec<(OracleKey<AccountId32>, OracleValue)>>>,
-    pub block_tracker: BlockTracker,
 }
 
 pub struct CyborgOracleFeeder {
     pub keypair: Arc<RwLock<Keypair>>,
     pub shared_state: Arc<SharedState>,
-    pub data_dir: Option<PathBuf>,
+    pub block_tracker: Arc<BlockTracker>,
 }
 
 // Subxt doesn't derive these, so I am writing a custom derive here
@@ -132,25 +131,29 @@ pub trait OracleFeeder {
     /// An `Option<String>` containing relevant information derived from the event, or `None` if no information is extracted.
     async fn get_worker_data(&self, worker_ip: &String) -> ProcessStatus;
 
-    /// Processes a single block's events
     async fn process_block(
         &self,
-        block: Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
+        block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
-
-    /// Synchronizes missed blocks
-    async fn sync_missed_blocks(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
 }
 
 /// Implementation of the `OracleFeeder` trait for `CyborgOracleFeeder`.
 #[async_trait]
 impl OracleFeeder for CyborgOracleFeeder {
     async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        // Sync missed blocks first
-        if !self.shared_state.block_tracker.is_first_run() {
-            self.sync_missed_blocks().await?;
+        // Check if we need to sync
+        if self.block_tracker.needs_sync().await? {
+            println!("Feeder needs to sync, processing missed blocks...");
+            let missed_blocks = self.block_tracker.get_missed_blocks().await?;
+
+            for block in missed_blocks {
+                println!("Processing missed block: {:?}", block.number());
+                self.process_block(&block).await?;
+                self.block_tracker.update_last_block(block.number()).await?;
+            }
         }
 
+        // Subscribe to new blocks
         let mut blocks = CLIENT
             .get()
             .ok_or("Failed to get client")?
@@ -159,8 +162,9 @@ impl OracleFeeder for CyborgOracleFeeder {
             .await?;
 
         while let Some(Ok(block)) = blocks.next().await {
-            println!("New block imported: {:?}", block.hash());
-            self.process_block(block).await?;
+            println!("New block imported: {:?}", block.number());
+            self.process_block(&block).await?;
+            self.block_tracker.update_last_block(block.number()).await?;
         }
 
         Ok(())
@@ -495,9 +499,10 @@ impl OracleFeeder for CyborgOracleFeeder {
         }
     }
 
+    // Extract block processing logic to a separate method
     async fn process_block(
         &self,
-        block: Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
+        block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let events = block.events().await?;
 
@@ -528,61 +533,6 @@ impl OracleFeeder for CyborgOracleFeeder {
                 Err(e) => eprintln!("Error decoding event: {:?}", e),
             }
         }
-
-        // Update last processed block
-        self.shared_state
-            .block_tracker
-            .update_last_block(&block)
-            .await?;
-
-        Ok(())
-    }
-
-    async fn sync_missed_blocks(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let client = CLIENT.get().ok_or("Failed to get client")?;
-    
-        // Get current finalized block hash
-        let current_block = client.blocks().at_latest().await?;
-        let current_block_hash = hex::encode(current_block.hash());
-    
-        // Get last processed block
-        let last_processed_hash = match self.shared_state.block_tracker.get_last_block().await? {
-            Some(hash) => hash,
-            None => return Ok(()), // No previous state
-        };
-    
-        if current_block_hash == last_processed_hash {
-            return Ok(()); // Already up to date
-        }
-    
-        println!("Syncing missed blocks from {} to {}", last_processed_hash, current_block_hash);
-    
-        // Store block hashes instead of blocks
-        let mut block_hashes_to_process = Vec::new();
-        let mut current_hash = current_block.hash();
-    
-        loop {
-            let current_hash_str = hex::encode(current_hash);
-            
-            if current_hash_str == last_processed_hash {
-                break; // Found common ancestor
-            }
-    
-            block_hashes_to_process.push(current_hash);
-    
-            // Get parent block hash
-            let block = client.blocks().at(current_hash).await?;
-            let header = block.header()?; 
-            current_hash = header.parent_hash;
-        }
-    
-        // Process blocks in order (oldest first)
-        for block_hash in block_hashes_to_process.into_iter().rev() {
-            let block = client.blocks().at(block_hash).await?;
-            println!("Processing missed block: {:?}", block.hash());
-            self.process_block(block).await?;
-        }
-    
         Ok(())
     }
 }
