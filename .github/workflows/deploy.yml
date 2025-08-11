@@ -20,7 +20,7 @@ jobs:
 
       - name: Deploy to VPS
         run: |
-          ssh -o StrictHostKeyChecking=no cyborg@20.93.0.136 << EOF
+          ssh -o StrictHostKeyChecking=no cyborg@98.71.8.214 << EOF
             cd /home/cyborg/cyborg-oracle-feeder || exit 1
             git fetch origin v0.1
             git reset --hard origin/v0.1
