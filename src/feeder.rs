@@ -524,7 +524,7 @@ impl OracleFeeder for CyborgOracleFeeder {
 
         let client = Client::new();
         let response = client
-            .get(format!("http://{}:8080/check-health", worker_ip))
+            .get(format!("{}/agent-health/check-health", worker_ip))
             .timeout(Duration::from_secs(5))
             .send()
             .await;
