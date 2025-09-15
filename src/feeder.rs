@@ -4,12 +4,17 @@ use crate::substrate_interface::api::runtime_types::cyborg_primitives::oracle::{
 use async_trait::async_trait;
 use ezkl::Commitments;
 use reqwest::Client;
-use subxt::{utils::AccountId32};
+use subxt::utils::AccountId32;
 use subxt_signer::sr25519::Keypair;
-use tokio::{sync::{Mutex, RwLock}, time::{sleep, /*Instant, */ Duration}};
+use tokio::{
+    sync::{Mutex, RwLock},
+    time::{sleep, /*Instant, */ Duration},
+};
 //use rand::rngs::StdRng;
 //use rand::{Rng, SeedableRng};
 //use crate::substrate_interface::api::edge_connect::storage::types::executable_workers;
+use crate::account::load_cyborg_test_key;
+use crate::config::CLIENT;
 use crate::substrate_interface::{
     self,
     api::{
@@ -27,12 +32,10 @@ use ezkl::{
     commands::Commands::{GetSrs, Verify},
     execute::run,
 };
-use crate::config::{CLIENT};
 use serde::Deserialize;
 use serde_aux::prelude::deserialize_bool_from_anything;
 use std::{fs::write, sync::Arc};
 use tempfile::tempdir;
-use crate::account::load_cyborg_test_key;
 
 pub struct SharedState {
     pub current_workers_data: Mutex<Option<Vec<(OracleKey<AccountId32>, OracleValue)>>>,
@@ -124,14 +127,27 @@ pub trait OracleFeeder {
     ///
     /// # Returns
     /// An `Option<String>` containing relevant information derived from the event, or `None` if no information is extracted.
-    async fn get_worker_data(&self, worker_ip: &String) -> ProcessStatus;
+    async fn get_worker_data(
+        &self,
+        worker_ip: &String,
+        worker_owner: AccountId32,
+        worker_id: u64,
+    ) -> ProcessStatus;
+
+    /// Checks if a worker is currently busy with a task
+    async fn is_worker_busy(
+        &self,
+        worker_owner: &AccountId32,
+        worker_id: u64,
+    ) -> Result<bool, Box<dyn std::error::Error + Send + Sync>>;
 }
 
 /// Implementation of the `OracleFeeder` trait for `CyborgOracleFeeder`.
 #[async_trait]
 impl OracleFeeder for CyborgOracleFeeder {
     async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let mut blocks = CLIENT.get()
+        let mut blocks = CLIENT
+            .get()
             .ok_or("Failed to get client")?
             .blocks()
             .subscribe_finalized()
@@ -279,9 +295,8 @@ impl OracleFeeder for CyborgOracleFeeder {
 
                     let result = vec![result];
 
-                    let feed_oracle_tx = SubstrateApi::tx()
-                        .oracle()
-                        .feed_values(BoundedVec(result));
+                    let feed_oracle_tx =
+                        SubstrateApi::tx().oracle().feed_values(BoundedVec(result));
 
                     println!(
                         "Feed Oracle NeuroZk Parameters: {:?}",
@@ -310,11 +325,15 @@ impl OracleFeeder for CyborgOracleFeeder {
                     for evt in events.iter() {
                         match evt {
                             Ok(ev) => {
-                                if let Some(system_event) = ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()? {
+                                if let Some(system_event) =
+                                    ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()?
+                                {
                                     println!("Extrinsic failed with error: {:?}", system_event);
                                     println!("Dispatch error: {:?}", system_event.dispatch_error);
                                     return Err("Extrinsic failed on chain".into());
-                                } else if let Some(_) = ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()? {
+                                } else if let Some(_) =
+                                    ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()?
+                                {
                                     println!("Extrinsic succeeded!");
                                 }
                             }
@@ -370,7 +389,9 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             println!("Worker IP: {}", worker_ip);
 
-            let process_status = self.get_worker_data(&worker_ip).await;
+            let process_status = self
+                .get_worker_data(&worker_ip, worker.value.owner.clone(), worker.value.id)
+                .await;
 
             worker_data.push((
                 OracleKey::Miner(OracleWorkerFormat {
@@ -386,7 +407,9 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             println!("Miner IP: {}", worker_ip);
 
-            let process_status = self.get_worker_data(&worker_ip).await;
+            let process_status = self
+                .get_worker_data(&worker_ip, worker.value.owner.clone(), worker.value.id)
+                .await;
 
             worker_data.push((
                 OracleKey::Miner(OracleWorkerFormat {
@@ -397,32 +420,36 @@ impl OracleFeeder for CyborgOracleFeeder {
             ));
         }
 
-        let mut miner_data = 
-            self.shared_state.current_workers_data.lock().await;
+        let mut miner_data = self.shared_state.current_workers_data.lock().await;
 
         *miner_data = Some(worker_data);
 
         Ok(())
     }
 
-    async fn get_worker_data(&self, worker_ip: &String) -> ProcessStatus {
+    async fn get_worker_data(
+        &self,
+        worker_ip: &String,
+        worker_owner: AccountId32,
+        worker_id: u64,
+    ) -> ProcessStatus {
         async fn process_response(
             response: reqwest::Response,
-        ) -> Result<WorkerHealthResponse, Box<dyn std::error::Error>> {
+        ) -> Result<WorkerHealthResponse, Box<dyn std::error::Error + Send + Sync>> {
             let response_text = response.text().await?;
             println!("Response text: {}", response_text);
             let worker_health_item = serde_json::from_str::<WorkerHealthResponse>(&response_text)?;
-
+    
             Ok(worker_health_item)
         }
-
+    
         let client = Client::new();
         let response = client
             .get(format!("http://{}:8080/check-health", worker_ip))
             .timeout(Duration::from_secs(5))
             .send()
             .await;
-
+    
         match response {
             Ok(response) => {
                 println!("Response: {:?}", response);
@@ -431,14 +458,25 @@ impl OracleFeeder for CyborgOracleFeeder {
                         "Miner with ip {} is online: {}",
                         worker_ip, worker_health_item.is_active
                     );
-                    if worker_health_item.is_active {
+    
+                    // Check if worker is busy on-chain
+                    let is_busy = match self.is_worker_busy(&worker_owner, worker_id).await {
+                        Ok(busy) => busy,
+                        Err(e) => {
+                            println!("Error checking busy status for worker {}: {}", worker_ip, e);
+                            false // Default to not busy if we can't check
+                        }
+                    };
+    
+                    if worker_health_item.is_active && !is_busy {
                         ProcessStatus {
                             online: true,
                             available: true,
                         }
                     } else {
+                        // Worker is either not active or is busy
                         ProcessStatus {
-                            online: false,
+                            online: worker_health_item.is_active,
                             available: false,
                         }
                     }
@@ -497,5 +535,29 @@ impl OracleFeeder for CyborgOracleFeeder {
             println!("No miner data available to feed.");
             Err("No miner data available to feed.".into())
         }
+    }
+
+    
+    async fn is_worker_busy(
+        &self,
+        worker_owner: &AccountId32,
+        worker_id: u64,
+    ) -> Result<bool, Box<dyn std::error::Error + Send + Sync>> {
+        let client = CLIENT.get().ok_or("Failed to get client")?;
+
+        // Query the BusyWorkers storage from edge-connect pallet
+        let busy_workers_address = SubstrateApi::storage()
+            .edge_connect()
+            .busy_workers((worker_owner.clone(), worker_id));
+
+        let is_busy = client
+            .storage()
+            .at_latest()
+            .await?
+            .fetch(&busy_workers_address)
+            .await?
+            .unwrap_or(false);
+
+        Ok(is_busy)
     }
 }
