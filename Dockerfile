@@ -1,4 +1,4 @@
-FROM rustlang/rust:nightly-slim As builder
+FROM rustlang/rust:nightly-slim as builder
 
 LABEL maintainer="tom@cyborgnetwork.io"
 LABEL description="Demo container for the Cyborg Oracle Feeder"
