@@ -19,20 +19,21 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     libzmq3-dev \
+    ca-certificates \
     && apt-get clean
-
 
 RUN cargo build --release
 
-FROM debian:bookworm-slim
+# Use the same base image for the final stage
+FROM rustlang/rust:nightly-slim
 
 RUN apt-get update && apt-get install -y \
     bash \
     libssl3 \
     libffi-dev \
     libzmq3-dev \
+    ca-certificates \
     && apt-get clean
-
 
 WORKDIR /app
 
