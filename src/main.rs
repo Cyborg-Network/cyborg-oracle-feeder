@@ -21,20 +21,24 @@ mod config;
 mod error;
 mod feeder;
 mod substrate_interface;
+mod tx_queue;
 
 use std::sync::Arc;
 
+use crate::config::config;
+use crate::tx_queue::init_transaction_queue;
 use builder::CyborgOracleFeederBuilder;
 use clap::Parser;
 use cli::{Cli, Commands};
 use feeder::OracleFeeder;
 
-use crate::config::config;
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let cli = Cli::parse();
     dotenv::dotenv().ok();
+
+    // Initialize transaction queue
+    init_transaction_queue();
 
     match &cli.command {
         Some(Commands::Start {
