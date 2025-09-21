@@ -1,15 +1,21 @@
-use crate::substrate_interface::api::runtime_types::cyborg_primitives::oracle::{
-    OracleKey, OracleValue,
+use crate::{
+    block_tracker::BlockTracker,
+    substrate_interface::api::runtime_types::cyborg_primitives::oracle::{OracleKey, OracleValue},
 };
 use async_trait::async_trait;
 use ezkl::Commitments;
 use reqwest::Client;
-use subxt::{utils::AccountId32};
+use subxt::{blocks::Block, utils::AccountId32, OnlineClient, PolkadotConfig};
 use subxt_signer::sr25519::Keypair;
-use tokio::{sync::{Mutex, RwLock}, time::{sleep, /*Instant, */ Duration}};
+use tokio::{
+    sync::{Mutex, RwLock},
+    time::{sleep, /*Instant, */ Duration},
+};
 //use rand::rngs::StdRng;
 //use rand::{Rng, SeedableRng};
 //use crate::substrate_interface::api::edge_connect::storage::types::executable_workers;
+use crate::account::load_cyborg_test_key;
+use crate::config::CLIENT;
 use crate::substrate_interface::{
     self,
     api::{
@@ -27,13 +33,10 @@ use ezkl::{
     commands::Commands::{GetSrs, Verify},
     execute::run,
 };
-use crate::config::{CLIENT};
 use serde::Deserialize;
 use serde_aux::prelude::deserialize_bool_from_anything;
-use std::{fs::write, sync::Arc};
+use std::{fs::write, path::Path, sync::Arc};
 use tempfile::tempdir;
-use crate::account::load_cyborg_test_key;
-use std::path::Path;
 
 pub struct SharedState {
     pub current_workers_data: Mutex<Option<Vec<(OracleKey<AccountId32>, OracleValue)>>>,
@@ -42,6 +45,7 @@ pub struct SharedState {
 pub struct CyborgOracleFeeder {
     pub keypair: Arc<RwLock<Keypair>>,
     pub shared_state: Arc<SharedState>,
+    pub block_tracker: Arc<BlockTracker>,
 }
 
 // Subxt doesn't derive these, so I am writing a custom derive here
@@ -126,48 +130,41 @@ pub trait OracleFeeder {
     /// # Returns
     /// An `Option<String>` containing relevant information derived from the event, or `None` if no information is extracted.
     async fn get_worker_data(&self, worker_ip: &String) -> ProcessStatus;
+
+    async fn process_block(
+        &self,
+        block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
 }
 
 /// Implementation of the `OracleFeeder` trait for `CyborgOracleFeeder`.
 #[async_trait]
 impl OracleFeeder for CyborgOracleFeeder {
     async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let mut blocks = CLIENT.get()
+        // Check if we need to sync
+        if self.block_tracker.needs_sync().await? {
+            println!("Feeder needs to sync, processing missed blocks...");
+            let missed_blocks = self.block_tracker.get_missed_blocks().await?;
+
+            for block in missed_blocks {
+                println!("Processing missed block: {:?}", block.number());
+                self.process_block(&block).await?;
+                self.block_tracker.update_last_block(block.number()).await?;
+            }
+        }
+
+        // Subscribe to new blocks
+        let mut blocks = CLIENT
+            .get()
             .ok_or("Failed to get client")?
             .blocks()
             .subscribe_finalized()
             .await?;
 
         while let Some(Ok(block)) = blocks.next().await {
-            println!("New block imported: {:?}", block.hash());
-
-            let events = block.events().await?;
-
-            for event in events.iter() {
-                match event {
-                    Ok(ev) => {
-                        match ev.as_event::<substrate_interface::api::neuro_zk::events::NzkProofSubmitted>() {
-                            Ok(Some(proof_event)) => {
-                                let task_id = proof_event.task_id;
-                                let submitting_miner = &proof_event.submitting_miner;
-
-                                println!(
-                                    "Processing proof: Task ID: {:?}, Submitting Miner: {:?}",
-                                    task_id, submitting_miner
-                                );
-
-                                self.verify_proof(task_id).await?;
-                            }
-                            Err(e) => {
-                                println!("Error decoding ProofSubmitted event: {:?}", e);
-                                return Err(Box::new(e));
-                            }
-                            _ => {} // Skip non-matching events 
-                        }
-                    }
-                    Err(e) => eprintln!("Error decoding event: {:?}", e),
-                }
-            }
+            println!("New block imported: {:?}", block.number());
+            self.process_block(&block).await?;
+            self.block_tracker.update_last_block(block.number()).await?;
         }
 
         Ok(())
@@ -375,7 +372,11 @@ impl OracleFeeder for CyborgOracleFeeder {
             OracleValue::ZkProofResult(bool_result),
         );
 
-        let feed_oracle_tx = SubstrateApi::tx().oracle().feed_values(BoundedVec(vec![result]));
+                    let result = vec![result];
+
+                    let feed_oracle_tx = SubstrateApi::tx()
+                        .oracle()
+                        .feed_values(BoundedVec(result));
 
         println!(
             "Feed Oracle NeuroZk Parameters: {:?}",
@@ -422,22 +423,22 @@ impl OracleFeeder for CyborgOracleFeeder {
             }
         };
 
-        for evt in events.iter() {
-            match evt {
-                Ok(ev) => {
-                    if let Some(system_event) = ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()? {
-                        eprintln!("Extrinsic failed with error: {:?}", system_event);
-                        eprintln!("Dispatch error: {:?}", system_event.dispatch_error);
-                        return Err("Extrinsic failed on chain".into());
-                    } else if ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()?.is_some() {
-                        println!("Extrinsic succeeded!");
+                    for evt in events.iter() {
+                        match evt {
+                            Ok(ev) => {
+                                if let Some(system_event) = ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()? {
+                                    println!("Extrinsic failed with error: {:?}", system_event);
+                                    println!("Dispatch error: {:?}", system_event.dispatch_error);
+                                    return Err("Extrinsic failed on chain".into());
+                                } else if let Some(_) = ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()? {
+                                    println!("Extrinsic succeeded!");
+                                }
+                            }
+                            Err(e) => {
+                                println!("Error parsing event: {:?}", e);
+                            }
+                        }
                     }
-                }
-                Err(e) => {
-                    eprintln!("Error parsing event: {:?}", e);
-                }
-            }
-        }
 
         Ok(())
     } 
@@ -503,8 +504,7 @@ impl OracleFeeder for CyborgOracleFeeder {
             ));
         }
 
-        let mut miner_data = 
-            self.shared_state.current_workers_data.lock().await;
+        let mut miner_data = self.shared_state.current_workers_data.lock().await;
 
         *miner_data = Some(worker_data);
 
@@ -603,5 +603,42 @@ impl OracleFeeder for CyborgOracleFeeder {
             println!("No miner data available to feed.");
             Err("No miner data available to feed.".into())
         }
+    }
+
+    // Extract block processing logic to a separate method
+    async fn process_block(
+        &self,
+        block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        let events = block.events().await?;
+
+        for event in events.iter() {
+            match event {
+                Ok(ev) => {
+                    match ev
+                        .as_event::<substrate_interface::api::neuro_zk::events::NzkProofSubmitted>()
+                    {
+                        Ok(Some(proof_event)) => {
+                            let task_id = proof_event.task_id;
+                            let submitting_miner = &proof_event.submitting_miner;
+
+                            println!(
+                                "Processing proof: Task ID: {:?}, Submitting Miner: {:?}",
+                                task_id, submitting_miner
+                            );
+
+                            self.verify_proof(task_id).await?;
+                        }
+                        Err(e) => {
+                            println!("Error decoding ProofSubmitted event: {:?}", e);
+                            return Err(Box::new(e));
+                        }
+                        _ => {} // Skip non-matching events
+                    }
+                }
+                Err(e) => eprintln!("Error decoding event: {:?}", e),
+            }
+        }
+        Ok(())
     }
 }

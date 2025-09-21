@@ -1,8 +1,10 @@
 use std::sync::Arc;
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 use subxt_signer::{sr25519::Keypair as SR25519Keypair, SecretUri};
 use tokio::sync::{Mutex, RwLock};
 
+use crate::block_tracker::BlockTracker;
+use crate::config::CLIENT;
 use crate::feeder::{CyborgOracleFeeder, SharedState};
 
 pub struct NoKeypair;
@@ -15,6 +17,7 @@ pub struct AccountKeypair(SR25519Keypair);
 pub struct CyborgOracleFeederBuilder<Keypair> {
     keypair: Keypair,
     shared_state: SharedState,
+    data_dir: PathBuf,
 }
 
 /// Default implementation for the `CyborgOracleFeederBuilder` when no keypair is provided.
@@ -23,11 +26,16 @@ pub struct CyborgOracleFeederBuilder<Keypair> {
 /// and the keypair is set to `NoKeypair`.
 impl Default for CyborgOracleFeederBuilder<NoKeypair> {
     fn default() -> Self {
+        let data_dir = dirs::data_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("cyborg-oracle-feeder");
+
         CyborgOracleFeederBuilder {
             keypair: NoKeypair,
-            shared_state: SharedState{
-                current_workers_data: Mutex::new(None)
+            shared_state: SharedState {
+                current_workers_data: Mutex::new(None),
             },
+            data_dir,
         }
     }
 }
@@ -51,6 +59,7 @@ impl<Keypair> CyborgOracleFeederBuilder<Keypair> {
         Ok(CyborgOracleFeederBuilder {
             keypair: AccountKeypair(keypair),
             shared_state: self.shared_state,
+            data_dir: self.data_dir,
         })
     }
 }
@@ -60,12 +69,16 @@ impl CyborgOracleFeederBuilder<AccountKeypair> {
     ///
     /// # Returns
     /// A `Result` that, if successful, contains the constructed `CyborgOracleFeeder`.
-    pub async fn build(self) -> CyborgOracleFeeder {
-        CyborgOracleFeeder {
+    pub async fn build(
+        self,
+    ) -> Result<CyborgOracleFeeder, Box<dyn std::error::Error + Send + Sync>> {
+        let client = CLIENT.get().ok_or("Failed to get client")?;
+        let block_tracker = BlockTracker::new(client.clone(), self.data_dir)?;
+
+        Ok(CyborgOracleFeeder {
             keypair: Arc::new(RwLock::new(self.keypair.0)),
             shared_state: Arc::new(self.shared_state),
-        }
+            block_tracker: Arc::new(block_tracker),
+        })
     }
 }
-    
-       

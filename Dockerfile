@@ -22,10 +22,10 @@ RUN apt-get update && apt-get install -y \
     ca-certificates \
     && apt-get clean
 
-
 RUN cargo build --release
 
-FROM debian:bookworm-slim
+# Use the same base image for the final stage
+FROM rustlang/rust:nightly-slim
 
 RUN apt-get update && apt-get install -y \
     bash \
@@ -34,7 +34,6 @@ RUN apt-get update && apt-get install -y \
     libzmq3-dev \
     ca-certificates \
     && apt-get clean
-
 
 WORKDIR /app
 
