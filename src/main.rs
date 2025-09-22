@@ -6,7 +6,7 @@ mod builder;
 ///
 /// # Commands:
 ///
-/// - `registration`: Registers a worker with the given blockchain node URL and account seed.
+/// - `registration`: Registers a miner with the given blockchain node URL and account seed.
 /// - `startmining`: Starts a mining session with the provided blockchain node URL, account seed, and IPFS URL.
 ///
 /// # Errors:
@@ -15,7 +15,7 @@ mod builder;
 ///
 /// # Usage:
 ///
-/// Run the executable with appropriate subcommands to register or start mining a worker.
+/// Run the executable with appropriate subcommands to register or start mining a miner.
 mod cli;
 mod config;
 mod error;
@@ -64,7 +64,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
             // Clone for parallel tasks
             let feeder_for_proofs = Arc::clone(&feeder);
-            let feeder_for_workers = Arc::clone(&feeder);
+            let feeder_for_miners = Arc::clone(&feeder);
 
             // Spawn verification in blocking thread
             let proofs = tokio::task::spawn_blocking(move || {
@@ -72,13 +72,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
                 rt.block_on(feeder_for_proofs.run_verify_proofs())
             });
 
-            // Spawn async worker check loop
-            let workers = tokio::spawn(async move { feeder_for_workers.run_check_workers().await });
+            // Spawn async miner check loop
+            let miners = tokio::spawn(async move { feeder_for_miners.run_check_miners().await });
 
             // Wait for both tasks
-            let (proofs_result, workers_result) = tokio::join!(proofs, workers);
+            let (proofs_result, miners_result) = tokio::join!(proofs, miners);
 
-            workers_result??;
+            miners_result??;
             proofs_result??;
         }
         _ => {

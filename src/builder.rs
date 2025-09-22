@@ -33,7 +33,7 @@ impl Default for CyborgOracleFeederBuilder<NoKeypair> {
         CyborgOracleFeederBuilder {
             keypair: NoKeypair,
             shared_state: SharedState {
-                current_workers_data: Mutex::new(None),
+                current_miners_data: Mutex::new(None),
             },
             data_dir,
         }

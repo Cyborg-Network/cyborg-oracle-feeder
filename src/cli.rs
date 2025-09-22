@@ -3,11 +3,11 @@ use clap::{Parser, Subcommand};
 #[derive(Debug, Parser, PartialEq)]
 #[command(
     name = "cyborg-oracle-feeder", // Name of the CLI tool.
-    about = "Am executable that will query the available workers and submit the results to the oracle.", // Description shown in the CLI help.
+    about = "Am executable that will query the available miners and submit the results to the oracle.", // Description shown in the CLI help.
     version = "1.0" // Version number of the CLI tool.
 )]
 
-/// `Cli` struct defines the command-line interface for the Cyborg worker.
+/// `Cli` struct defines the command-line interface for the Cyborg oracle-feeder.
 /// This struct uses the `clap` crate to parse command-line arguments.
 /// It contains a single field `command` which specifies the subcommand to be executed.
 pub struct Cli {
@@ -18,8 +18,8 @@ pub struct Cli {
 
 // Enum to define the available subcommands. Each variant corresponds to a different command.
 #[derive(Debug, Subcommand, PartialEq)]
-/// `Commands` enum defines the available subcommands for the Cyborg worker.
-/// Each variant represents a specific action that can be performed by the worker.
+/// `Commands` enum defines the available subcommands for the Cyborg oracle-feeder.
+/// Each variant represents a specific action that can be performed by the oracle-feeder.
 /// - `Start`: Starts the feeder with the provided parachain URL and feeder account seed.
 pub enum Commands {
     /// Start the oracle feeder.

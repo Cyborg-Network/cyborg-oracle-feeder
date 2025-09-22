@@ -1,7 +1,5 @@
 use crate::{
-    block_tracker::BlockTracker,
-    substrate_interface::api::runtime_types::cyborg_primitives::oracle::{OracleKey, OracleValue},
-    tx_queue::{TxOutput, TRANSACTION_QUEUE},
+    block_tracker::BlockTracker, error::Error, substrate_interface::api::runtime_types::cyborg_primitives::{oracle::{OracleKey, OracleValue}, task::TaskKind}, tx_queue::{TxOutput, TRANSACTION_QUEUE}
 };
 use async_trait::async_trait;
 use ezkl::Commitments;
@@ -14,7 +12,7 @@ use tokio::{
 };
 //use rand::rngs::StdRng;
 //use rand::{Rng, SeedableRng};
-//use crate::substrate_interface::api::edge_connect::storage::types::executable_workers;
+//use crate::substrate_interface::api::edge_connect::storage::types::executable_miners;
 use crate::account::load_cyborg_test_key;
 use crate::config::CLIENT;
 use crate::substrate_interface::{
@@ -24,8 +22,8 @@ use crate::substrate_interface::{
         runtime_types::{
             bounded_collections::bounded_vec::BoundedVec,
             cyborg_primitives::{
-                oracle::{OracleWorkerFormat, ProcessStatus},
-                worker::WorkerType,
+                oracle::{OracleMinerFormat, ProcessStatus},
+                miner::MinerType,
             },
         },
     },
@@ -40,7 +38,7 @@ use std::{fs::write, sync::Arc};
 use tempfile::tempdir;
 
 pub struct SharedState {
-    pub current_workers_data: Mutex<Option<Vec<(OracleKey<AccountId32>, OracleValue)>>>,
+    pub current_miners_data: Mutex<Option<Vec<(OracleKey<AccountId32>, OracleValue)>>>,
 }
 
 #[allow(dead_code)]
@@ -59,19 +57,19 @@ impl Clone for ProcessStatus {
         }
     }
 }
-impl Clone for WorkerType {
+impl Clone for MinerType {
     fn clone(&self) -> Self {
         match self {
-            WorkerType::Docker => WorkerType::Docker,
-            WorkerType::Executable => WorkerType::Executable,
+            MinerType::Cloud => MinerType::Cloud,
+            MinerType::Edge => MinerType::Edge,
         }
     }
 }
-impl Clone for OracleWorkerFormat<AccountId32> {
+impl Clone for OracleMinerFormat<AccountId32> {
     fn clone(&self) -> Self {
-        OracleWorkerFormat {
+        OracleMinerFormat {
             id: self.id.clone(),
-            worker_type: self.worker_type.clone(),
+            miner_type: self.miner_type.clone(),
         }
     }
 }
@@ -93,18 +91,18 @@ impl Clone for OracleValue {
 }
 
 #[derive(Deserialize)]
-struct WorkerHealthResponse {
+struct MinerHealthResponse {
     #[serde(deserialize_with = "deserialize_bool_from_anything")]
     is_active: bool,
 }
 
 #[async_trait]
-/// A trait for oracle feeder operations, such as getting the workers from the chain, the status of a single worker from the worker itself and feeding the oracle
+/// A trait for oracle feeder operations, such as getting the miners from the chain, the status of a single miner from the miner itself and feeding the oracle
 ///
 /// Provides an asynchronous API which enables the feeding process
 pub trait OracleFeeder {
-    /// Runs the worker checking side of the oracle feeder, then waits some time before running it again.
-    async fn run_check_workers(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
+    /// Runs the miner checking side of the oracle feeder, then waits some time before running it again.
+    async fn run_check_miners(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
 
     /// Runs the proof verification side of the oracle feeder.
     async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
@@ -115,23 +113,23 @@ pub trait OracleFeeder {
         task_id: u64,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
 
-    /// Sets the workers that are currently registered onchain to self.
+    /// Sets the miners that are currently registered onchain to self.
     ///
     /// # Returns
     /// A `Result` indicating `Ok(())` if successful, or an `Error` if the operation fails.
-    async fn collect_worker_data(&self) -> Result<(), subxt::Error>;
+    async fn collect_miner_data(&self) -> Result<(), subxt::Error>;
 
-    /// Attempts to feed the oracle with the values that were gathered from the workers at that point.
+    /// Attempts to feed the oracle with the values that were gathered from the miners at that point.
     ///
     /// # Returns
     /// A `Result` indicating `Ok(())` if the oracle was fed successfully, or an `Error` if it fails.
     async fn feed(&self) -> Result<(), Box<dyn std::error::Error>>;
 
-    /// Collects status data from the workers and mutates `self.current_workers` accordingly.
+    /// Collects status data from the miners and mutates `self.current_miners` accordingly.
     ///
     /// # Returns
     /// An `Option<String>` containing relevant information derived from the event, or `None` if no information is extracted.
-    async fn get_worker_data(&self, worker_ip: &String) -> ProcessStatus;
+    async fn get_miner_data(&self, miner_ip: &String) -> ProcessStatus;
 
     async fn process_block(
         &self,
@@ -180,7 +178,7 @@ impl OracleFeeder for CyborgOracleFeeder {
         Ok(())
     }
 
-    async fn run_check_workers(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    async fn run_check_miners(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         loop {
             println!("Running Oracle Feeder");
             println!("Starting new hour cycle...");
@@ -204,7 +202,7 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             sleep(random_delay).await;
 
-            self.collect_worker_data().await?;
+            self.collect_miner_data().await?;
 
             self.feed().await.unwrap_or_else(|e| {
                 println!("Failed to feed the oracle due to error: {e}. retrying in next cycle.")
@@ -247,198 +245,195 @@ impl OracleFeeder for CyborgOracleFeeder {
             .fetch(&task_address)
             .await?;
 
-        if let Some(task) = task {
-            if let Some(nzk_data) = task.nzk_data {
-                if let Some(proof) = nzk_data.zk_proof {
-                    let dir = tempdir()?;
-                    let proof_path = dir.path().join("proof.json");
-                    let vk_path = dir.path().join("vk.key");
-                    let srs_path = dir.path().join("kzg.srs");
-                    let settings_path = dir.path().join("settings.json");
+        let task = task.ok_or(Error::Custom("Requested task not found!".to_string()))?;
 
-                    write(&proof_path, proof.0)?;
-                    write(&vk_path, nzk_data.zk_verifying_key.0)?;
-                    write(&settings_path, nzk_data.zk_settings.0)?;
+        let TaskKind::NeuroZK(nzk_data) = task.task_kind else {
+            return Err("Task is not an NZK task!".into());
+        };
 
-                    let _ = run(GetSrs {
-                        srs_path: Some(srs_path.clone()),
-                        settings_path: Some(settings_path.clone()),
-                        logrows: None,
-                        commitment: Some(Commitments::KZG),
-                    })
-                    .await?;
+        let proof = nzk_data.zk_proof
+            .ok_or(Error::Custom("No ZK proof present for verification, nzk_data.zk_proof is none!".to_string()))?;
 
-                    //TODO obv it's nasty that this returns a string, but ezkl verification options will change with next release (verification via bytearrray), so this isn't final anyway
-                    let string_result = run(Verify {
-                        settings_path: Some(settings_path),
-                        proof_path: Some(proof_path),
-                        vk_path: Some(vk_path),
-                        srs_path: Some(srs_path),
-                        reduced_srs: None,
-                    })
-                    .await?;
+        let dir = tempdir()?;
+        let proof_path = dir.path().join("proof.json");
+        let vk_path = dir.path().join("vk.key");
+        let srs_path = dir.path().join("kzg.srs");
+        let settings_path = dir.path().join("settings.json");
 
-                    println!("Verification result: {}", string_result);
+        write(&proof_path, proof.0)?;
+        write(&vk_path, nzk_data.zk_verifying_key.0)?;
+        write(&settings_path, nzk_data.zk_settings.0)?;
 
-                    let bool_result: bool;
+        let _ = run(GetSrs {
+            srs_path: Some(srs_path.clone()),
+            settings_path: Some(settings_path.clone()),
+            logrows: None,
+            commitment: Some(Commitments::KZG),
+        })
+        .await?;
 
-                    match string_result.as_str() {
-                        "true" => bool_result = true,
-                        "false" => bool_result = false,
-                        _ => return Err("Verification failed".into()),
-                    };
+        //TODO obv it's nasty that this returns a string, but ezkl verification options will change with next release (verification via bytearrray), so this isn't final anyway
+        let string_result = run(Verify {
+            settings_path: Some(settings_path),
+            proof_path: Some(proof_path),
+            vk_path: Some(vk_path),
+            srs_path: Some(srs_path),
+            reduced_srs: None,
+        })
+        .await?;
 
-                    let result: (OracleKey<AccountId32>, OracleValue) = (
-                        OracleKey::NzkProofResult(task_id),
-                        OracleValue::ZkProofResult(bool_result),
-                    );
+        println!("Verification result: {}", string_result);
 
-                    let result = vec![result];
+        let bool_result: bool;
 
-                    let feed_oracle_tx =
-                        SubstrateApi::tx().oracle().feed_values(BoundedVec(result));
+        match string_result.as_str() {
+            "true" => bool_result = true,
+            "false" => bool_result = false,
+            _ => return Err("Verification failed".into()),
+        };
 
-                    println!(
-                        "Feed Oracle NeuroZk Parameters: {:?}",
-                        feed_oracle_tx.call_data()
-                    );
+        let result: (OracleKey<AccountId32>, OracleValue) = (
+            OracleKey::NzkProofResult(task_id),
+            OracleValue::ZkProofResult(bool_result),
+        );
 
-                    let keypair = load_cyborg_test_key()?;
+        let result = vec![result];
 
-                    let tx_progress = client
-                        .tx()
-                        .sign_and_submit_then_watch_default(&feed_oracle_tx, &keypair)
-                        .await
-                        .map_err(|e| {
-                            eprintln!("Extrinsic submission failed: {:?}", e);
-                            e
-                        })?;
+        let feed_oracle_tx =
+            SubstrateApi::tx().oracle().feed_values(BoundedVec(result));
 
-                    println!("Extrinsic submitted. Waiting for inclusion...");
+        println!(
+            "Feed Oracle NeuroZk Parameters: {:?}",
+            feed_oracle_tx.call_data()
+        );
 
-                    let finalized = tx_progress.wait_for_finalized().await?;
+        let keypair = load_cyborg_test_key()?;
 
-                    println!("Extrinsic finalized in block: {:?}", finalized.block_hash());
+        let tx_progress = client
+            .tx()
+            .sign_and_submit_then_watch_default(&feed_oracle_tx, &keypair)
+            .await
+            .map_err(|e| {
+                eprintln!("Extrinsic submission failed: {:?}", e);
+                e
+            })?;
 
-                    let events = finalized.fetch_events().await?;
+        println!("Extrinsic submitted. Waiting for inclusion...");
 
-                    for evt in events.iter() {
-                        match evt {
-                            Ok(ev) => {
-                                if let Some(system_event) =
-                                    ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()?
-                                {
-                                    println!("Extrinsic failed with error: {:?}", system_event);
-                                    println!("Dispatch error: {:?}", system_event.dispatch_error);
-                                    return Err("Extrinsic failed on chain".into());
-                                } else if let Some(_) =
-                                    ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()?
-                                {
-                                    println!("Extrinsic succeeded!");
-                                    // Return success instead of the malformed match arm
-                                    return Ok(());
-                                }
-                            }
-                            Err(e) => {
-                                println!("Error parsing event: {:?}", e);
-                            }
-                        }
+        let finalized = tx_progress.wait_for_finalized().await?;
+
+        println!("Extrinsic finalized in block: {:?}", finalized.block_hash());
+
+        let events = finalized.fetch_events().await?;
+
+        for evt in events.iter() {
+            match evt {
+                Ok(ev) => {
+                    if let Some(system_event) =
+                        ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()?
+                    {
+                        println!("Extrinsic failed with error: {:?}", system_event);
+                        println!("Dispatch error: {:?}", system_event.dispatch_error);
+                        return Err("Extrinsic failed on chain".into());
+                    } else if let Some(_) =
+                        ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()?
+                    {
+                        println!("Extrinsic succeeded!");
+                        // Return success instead of the malformed match arm
+                        return Ok(());
                     }
-
-                    Ok(())
-                } else {
-                    Err("Zk proof not found".into())
                 }
-            } else {
-                Err("Nzk data not found".into())
+                Err(e) => {
+                    println!("Error parsing event: {:?}", e);
+                }
             }
-        } else {
-            Err("Task not found".into())
         }
-    }
-
-    async fn collect_worker_data(&self) -> Result<(), subxt::Error> {
-        let mut worker_data: Vec<(OracleKey<AccountId32>, OracleValue)> = Vec::new();
-
-        let worker_clusters_address = SubstrateApi::storage()
-            .edge_connect()
-            .worker_clusters_iter();
-
-        let executable_workers_address = SubstrateApi::storage()
-            .edge_connect()
-            .executable_workers_iter();
-
-        let client = CLIENT.get().ok_or("Failed to get client")?;
-
-        let mut worker_clusters_query = client
-            .storage()
-            .at_latest()
-            .await?
-            .iter(worker_clusters_address)
-            .await?;
-
-        let mut executable_workers_query = client
-            .storage()
-            .at_latest()
-            .await?
-            .iter(executable_workers_address)
-            .await?;
-
-        println!("Collecting worker data...");
-
-        while let Some(Ok(worker)) = worker_clusters_query.next().await {
-            let worker_ip = String::from_utf8_lossy(&worker.value.api.domain.0).to_string();
-
-            println!("Worker IP: {}", worker_ip);
-
-            let process_status = self.get_worker_data(&worker_ip).await;
-
-            worker_data.push((
-                OracleKey::Miner(OracleWorkerFormat {
-                    id: (worker.value.owner, worker.value.id),
-                    worker_type: WorkerType::Executable,
-                }),
-                OracleValue::MinerStatus(process_status),
-            ));
-        }
-
-        while let Some(Ok(worker)) = executable_workers_query.next().await {
-            let worker_ip = String::from_utf8_lossy(&worker.value.api.domain.0).to_string();
-
-            println!("Miner IP: {}", worker_ip);
-
-            let process_status = self.get_worker_data(&worker_ip).await;
-
-            worker_data.push((
-                OracleKey::Miner(OracleWorkerFormat {
-                    id: (worker.value.owner, worker.value.id),
-                    worker_type: WorkerType::Executable,
-                }),
-                OracleValue::MinerStatus(process_status),
-            ));
-        }
-
-        let mut miner_data = self.shared_state.current_workers_data.lock().await;
-
-        *miner_data = Some(worker_data);
 
         Ok(())
     }
 
-    async fn get_worker_data(&self, worker_ip: &String) -> ProcessStatus {
+    async fn collect_miner_data(&self) -> Result<(), subxt::Error> {
+        let mut new_miner_data: Vec<(OracleKey<AccountId32>, OracleValue)> = Vec::new();
+
+        let miner_clusters_address = SubstrateApi::storage()
+            .edge_connect()
+            .cloud_miners_iter();
+
+        let executable_miners_address = SubstrateApi::storage()
+            .edge_connect()
+            .edge_miners_iter();
+
+        let client = CLIENT.get().ok_or("Failed to get client")?;
+
+        let mut miner_clusters_query = client
+            .storage()
+            .at_latest()
+            .await?
+            .iter(miner_clusters_address)
+            .await?;
+
+        let mut executable_miners_query = client
+            .storage()
+            .at_latest()
+            .await?
+            .iter(executable_miners_address)
+            .await?;
+
+        println!("Collecting miner data...");
+
+        while let Some(Ok(miner)) = miner_clusters_query.next().await {
+            let miner_ip = String::from_utf8_lossy(&miner.value.api.domain.0).to_string();
+
+            println!("Miner IP: {}", miner_ip);
+
+            let process_status = self.get_miner_data(&miner_ip).await;
+
+            new_miner_data.push((
+                OracleKey::Miner(OracleMinerFormat {
+                    id: (miner.value.owner, miner.value.id),
+                    miner_type: MinerType::Edge,
+                }),
+                OracleValue::MinerStatus(process_status),
+            ));
+        }
+
+        while let Some(Ok(miner)) = executable_miners_query.next().await {
+            let miner_ip = String::from_utf8_lossy(&miner.value.api.domain.0).to_string();
+
+            println!("Miner IP: {}", miner_ip);
+
+            let process_status = self.get_miner_data(&miner_ip).await;
+
+            new_miner_data.push((
+                OracleKey::Miner(OracleMinerFormat {
+                    id: (miner.value.owner, miner.value.id),
+                    miner_type: MinerType::Edge,
+                }),
+                OracleValue::MinerStatus(process_status),
+            ));
+        }
+
+        let mut miner_data_guard = self.shared_state.current_miners_data.lock().await;
+
+        *miner_data_guard = Some(new_miner_data);
+
+        Ok(())
+    }
+
+    async fn get_miner_data(&self, miner_ip: &String) -> ProcessStatus {
         async fn process_response(
             response: reqwest::Response,
-        ) -> Result<WorkerHealthResponse, Box<dyn std::error::Error>> {
+        ) -> Result<MinerHealthResponse, Box<dyn std::error::Error>> {
             let response_text = response.text().await?;
             println!("Response text: {}", response_text);
-            let worker_health_item = serde_json::from_str::<WorkerHealthResponse>(&response_text)?;
+            let miner_health_item = serde_json::from_str::<MinerHealthResponse>(&response_text)?;
 
-            Ok(worker_health_item)
+            Ok(miner_health_item)
         }
 
         let client = Client::new();
         let response = client
-            .get(format!("{}/agent-health/check-health", worker_ip))
+            .get(format!("{}/agent-health/check-health", miner_ip))
             .timeout(Duration::from_secs(5))
             .send()
             .await;
@@ -446,12 +441,12 @@ impl OracleFeeder for CyborgOracleFeeder {
         match response {
             Ok(response) => {
                 println!("Response: {:?}", response);
-                if let Ok(worker_health_item) = process_response(response).await {
+                if let Ok(miner_health_item) = process_response(response).await {
                     println!(
                         "Miner with ip {} is online: {}",
-                        worker_ip, worker_health_item.is_active
+                        miner_ip, miner_health_item.is_active
                     );
-                    if worker_health_item.is_active {
+                    if miner_health_item.is_active {
                         ProcessStatus {
                             online: true,
                             available: true,
@@ -463,7 +458,7 @@ impl OracleFeeder for CyborgOracleFeeder {
                         }
                     }
                 } else {
-                    println!("Miner with IP {} returned an error", worker_ip);
+                    println!("Miner with IP {} returned an error", miner_ip);
                     ProcessStatus {
                         online: false,
                         available: false,
@@ -473,7 +468,7 @@ impl OracleFeeder for CyborgOracleFeeder {
             Err(error) => {
                 println!(
                     "Miner with ip {} is not online. Error: {}",
-                    worker_ip, error
+                    miner_ip, error
                 );
                 ProcessStatus {
                     online: false,
@@ -484,9 +479,9 @@ impl OracleFeeder for CyborgOracleFeeder {
     }
 
     async fn feed(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let lock = self.shared_state.current_workers_data.lock().await;
-        if let Some(workers_data) = lock.as_ref() {
-            let workers_data = workers_data.clone();
+        let lock = self.shared_state.current_miners_data.lock().await;
+        if let Some(miners_data) = lock.as_ref() {
+            let miners_data = miners_data.clone();
 
             // Get the transaction queue
             let queue = TRANSACTION_QUEUE
@@ -496,14 +491,14 @@ impl OracleFeeder for CyborgOracleFeeder {
             // Enqueue the feed operation
             let rx = queue
                 .enqueue(move || {
-                    let workers_data = workers_data.clone();
+                    let miners_data = miners_data.clone();
                     async move {
                         let client = CLIENT.get().ok_or("Failed to get client")?;
                         let keypair = load_cyborg_test_key()?;
 
                         let feed_oracle_tx = SubstrateApi::tx()
                             .oracle()
-                            .feed_values(BoundedVec(workers_data));
+                            .feed_values(BoundedVec(miners_data));
 
                         log::info!(
                             "Feed Oracle Miner Status Parameters: {:?}",
