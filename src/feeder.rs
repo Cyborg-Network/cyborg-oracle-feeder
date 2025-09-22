@@ -36,7 +36,7 @@ use ezkl::{
 };
 use serde::Deserialize;
 use serde_aux::prelude::deserialize_bool_from_anything;
-use std::{fs::write, path::Path, sync::Arc};
+use std::{fs::write, sync::Arc};
 use tempfile::tempdir;
 
 pub struct SharedState {
@@ -150,8 +150,16 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             for block in missed_blocks {
                 println!("Processing missed block: {:?}", block.number());
-                self.process_block(&block).await?;
-                self.block_tracker.update_last_block(block.number()).await?;
+                match self.process_block(&block).await {
+                    Ok(_) => {
+                        self.block_tracker.update_last_block(block.number()).await?;
+                    }
+                    Err(e) => {
+                        eprintln!("Failed to process block {}: {}", block.number(), e);
+                        // Continue with next block instead of failing completely
+                        continue;
+                    }
+                }
             }
         }
 
@@ -221,8 +229,6 @@ impl OracleFeeder for CyborgOracleFeeder {
         &self,
         task_id: u64,
     ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let mut failed = false;
-
         // Get client
         let client = match CLIENT.get() {
             Some(c) => c,

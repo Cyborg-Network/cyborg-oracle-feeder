@@ -40,12 +40,17 @@ impl BlockTracker {
 
     pub async fn needs_sync(&self) -> Result<bool> {
         let last_block = *self.last_processed_block.lock().await;
-        if let Some(last_block_num) = last_block {
+
+        // First startup - no sync needed, just update to current block
+        if last_block.is_none() {
             let current_block = self.client.blocks().at_latest().await?.number();
-            Ok(current_block > last_block_num)
-        } else {
-            Ok(false) // First run, no sync needed
+            self.update_last_block(current_block).await?;
+            return Ok(false);
         }
+
+        let last_block_num = last_block.unwrap();
+        let current_block = self.client.blocks().at_latest().await?.number();
+        Ok(current_block > last_block_num)
     }
 
     pub async fn update_last_block(&self, block_num: u32) -> Result<()> {
@@ -60,19 +65,28 @@ impl BlockTracker {
     ) -> Result<Vec<Block<PolkadotConfig, OnlineClient<PolkadotConfig>>>> {
         let last_block_num = self.last_processed_block.lock().await.unwrap_or(0);
         let current_block = self.client.blocks().at_latest().await?;
-        let mut current_block_num = current_block.number();
+        let current_block_num = current_block.number();
 
-        let mut missed_blocks = Vec::new();
-
-        // Walk backwards from current block to last processed block
-        while current_block_num > last_block_num {
-            let block_hash = current_block.hash();
-            let block = self.client.blocks().at(block_hash).await?;
-            missed_blocks.push(block);
-            current_block_num -= 1;
+        if current_block_num <= last_block_num {
+            return Ok(Vec::new());
         }
 
-        // Reverse to process in chronological order
+        let mut missed_blocks = Vec::new();
+        let mut block_hash = current_block.hash();
+
+        // Walk backwards from current block to last processed block + 1
+        for _ in (last_block_num + 1..=current_block_num).rev() {
+            let block = self.client.blocks().at(block_hash).await?;
+            block_hash = block.header().parent_hash;
+            missed_blocks.push(block);
+
+            // Stop if we've reached the genesis block (parent_hash is zero)
+            if block_hash == Default::default() {
+                break;
+            }
+        }
+
+        // Reverse to get chronological order (oldest first)
         missed_blocks.reverse();
         Ok(missed_blocks)
     }
