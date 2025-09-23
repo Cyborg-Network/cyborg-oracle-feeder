@@ -493,7 +493,64 @@ impl OracleFeeder for CyborgOracleFeeder {
                 .get()
                 .ok_or("Transaction queue not initialized")?;
 
-            // Enqueue the feed operation
+            // First, update oracle status for each worker
+            for (oracle_key, oracle_value) in &workers_data {
+                if let OracleKey::Miner(worker_format) = oracle_key {
+                    if let OracleValue::MinerStatus(process_status) = oracle_value {
+                        let rx = queue
+                            .enqueue({
+                                let worker_owner = worker_format.id.0.clone();
+                                let worker_id = worker_format.id.1;
+                                let online = process_status.online;
+                                let client = CLIENT.get().ok_or("Failed to get client")?.clone();
+                                let keypair = load_cyborg_test_key()?;
+
+                                move || {
+                                    let client = client.clone();
+                                    let keypair = keypair.clone();
+                                    async move {
+                                        let update_tx =
+                                            SubstrateApi::tx().edge_connect().update_oracle_status(
+                                                worker_owner,
+                                                worker_id,
+                                                worker_format.worker_type.clone(),
+                                                online,
+                                            );
+
+                                        let _ = client
+                                            .tx()
+                                            .sign_and_submit_then_watch_default(
+                                                &update_tx, &keypair,
+                                            )
+                                            .await
+                                            .map_err(|e| {
+                                                log::error!(
+                                                    "Failed to submit oracle status update: {}",
+                                                    e
+                                                );
+                                                e
+                                            })?
+                                            .wait_for_finalized_success()
+                                            .await?;
+
+                                        Ok(TxOutput::OracleFeedSuccess)
+                                    }
+                                }
+                            })
+                            .await?;
+
+                        // Fire and forget the status updates
+                        tokio::spawn(async move {
+                            match rx.await {
+                                Ok(Ok(_)) => log::debug!("Oracle status updated for worker"),
+                                Ok(Err(e)) => log::warn!("Failed to update oracle status: {}", e),
+                                Err(_) => log::debug!("Oracle status update channel closed"),
+                            }
+                        });
+                    }
+                }
+            }
+
             let rx = queue
                 .enqueue(move || {
                     let workers_data = workers_data.clone();
