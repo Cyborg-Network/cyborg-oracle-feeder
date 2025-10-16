@@ -403,6 +403,7 @@ impl OracleFeeder for CyborgOracleFeeder {
             println!("Miner IP: {}", miner_ip);
 
             let process_status = self.get_miner_data(&miner_ip).await;
+            
 
             new_miner_data.push((
                 OracleKey::Miner(OracleMinerFormat {
