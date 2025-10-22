@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::error::Result;
 use once_cell::sync::OnceCell;
 use std::{
@@ -20,7 +21,7 @@ type TxExecutor =
 #[derive(Debug)]
 pub enum TxOutput {
     OracleFeedSuccess,
-    ProofVerificationSuccess,
+    // ProofVerificationSuccess,
 }
 
 pub struct Transaction {
