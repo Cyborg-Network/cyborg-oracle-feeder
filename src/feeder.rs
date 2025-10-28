@@ -18,7 +18,6 @@ use tokio::{
 };
 //use rand::rngs::StdRng;
 //use rand::{Rng, SeedableRng};
-//use crate::substrate_interface::api::edge_connect::storage::types::executable_miners;
 use crate::account::load_cyborg_test_key;
 use crate::config::CLIENT;
 use crate::substrate_interface::{
@@ -361,29 +360,29 @@ impl OracleFeeder for CyborgOracleFeeder {
     async fn collect_miner_data(&self) -> Result<(), subxt::Error> {
         let mut new_miner_data: Vec<(OracleKey, OracleValue)> = Vec::new();
 
-        let miner_clusters_address = SubstrateApi::storage().edge_connect().cloud_miners_iter();
+        let cloud_miners_address = SubstrateApi::storage().edge_connect().cloud_miners_iter();
 
-        let executable_miners_address = SubstrateApi::storage().edge_connect().edge_miners_iter();
+        let edge_miners_address = SubstrateApi::storage().edge_connect().edge_miners_iter();
 
         let client = CLIENT.get().ok_or("Failed to get client")?;
 
-        let mut miner_clusters_query = client
+        let mut cloud_miners_query = client
             .storage()
             .at_latest()
             .await?
-            .iter(miner_clusters_address)
+            .iter(cloud_miners_address)
             .await?;
 
-        let mut executable_miners_query = client
+        let mut edge_miners_query = client
             .storage()
             .at_latest()
             .await?
-            .iter(executable_miners_address)
+            .iter(edge_miners_address)
             .await?;
 
         println!("Collecting miner data...");
 
-        while let Some(Ok(miner)) = miner_clusters_query.next().await {
+        while let Some(Ok(miner)) = cloud_miners_query.next().await {
             let miner_ip = String::from_utf8_lossy(&miner.value.api.domain.0).to_string();
 
             println!("Miner IP: {}", miner_ip);
@@ -399,7 +398,7 @@ impl OracleFeeder for CyborgOracleFeeder {
             ));
         }
 
-        while let Some(Ok(miner)) = executable_miners_query.next().await {
+        while let Some(Ok(miner)) = edge_miners_query.next().await {
             let miner_ip = String::from_utf8_lossy(&miner.value.api.domain.0).to_string();
 
             println!("Miner IP: {}", miner_ip);
