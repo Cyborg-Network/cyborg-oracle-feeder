@@ -1,10 +1,16 @@
 use crate::{
-    block_tracker::BlockTracker, error::Error, substrate_interface::api::runtime_types::cyborg_primitives::{oracle::{OracleKey, OracleValue}, task::TaskKind}, tx_queue::{TxOutput, TRANSACTION_QUEUE}
+    block_tracker::BlockTracker,
+    error::Error,
+    substrate_interface::api::runtime_types::cyborg_primitives::{
+        oracle::{OracleKey, OracleValue},
+        task::TaskKind,
+    },
+    tx_queue::{TxOutput, TRANSACTION_QUEUE},
 };
 use async_trait::async_trait;
 use ezkl::Commitments;
 use reqwest::Client;
-use subxt::{blocks::Block, utils::AccountId32, OnlineClient, PolkadotConfig};
+use subxt::{blocks::Block, OnlineClient, PolkadotConfig};
 use subxt_signer::sr25519::Keypair;
 use tokio::{
     sync::{Mutex, RwLock},
@@ -12,7 +18,6 @@ use tokio::{
 };
 //use rand::rngs::StdRng;
 //use rand::{Rng, SeedableRng};
-//use crate::substrate_interface::api::edge_connect::storage::types::executable_miners;
 use crate::account::load_cyborg_test_key;
 use crate::config::CLIENT;
 use crate::substrate_interface::{
@@ -22,8 +27,8 @@ use crate::substrate_interface::{
         runtime_types::{
             bounded_collections::bounded_vec::BoundedVec,
             cyborg_primitives::{
-                oracle::{OracleMinerFormat, ProcessStatus},
                 miner::MinerType,
+                oracle::{OracleMinerFormat, ProcessStatus},
             },
         },
     },
@@ -38,7 +43,7 @@ use std::{fs::write, sync::Arc};
 use tempfile::tempdir;
 
 pub struct SharedState {
-    pub current_miners_data: Mutex<Option<Vec<(OracleKey<AccountId32>, OracleValue)>>>,
+    pub current_miners_data: Mutex<Option<Vec<(OracleKey, OracleValue)>>>,
 }
 
 #[allow(dead_code)]
@@ -65,7 +70,7 @@ impl Clone for MinerType {
         }
     }
 }
-impl Clone for OracleMinerFormat<AccountId32> {
+impl Clone for OracleMinerFormat {
     fn clone(&self) -> Self {
         OracleMinerFormat {
             id: self.id.clone(),
@@ -73,7 +78,7 @@ impl Clone for OracleMinerFormat<AccountId32> {
         }
     }
 }
-impl Clone for OracleKey<AccountId32> {
+impl Clone for OracleKey {
     fn clone(&self) -> Self {
         match self {
             Self::Miner(miner) => Self::Miner(miner.clone()),
@@ -251,8 +256,9 @@ impl OracleFeeder for CyborgOracleFeeder {
             return Err("Task is not an NZK task!".into());
         };
 
-        let proof = nzk_data.zk_proof
-            .ok_or(Error::Custom("No ZK proof present for verification, nzk_data.zk_proof is none!".to_string()))?;
+        let proof = nzk_data.zk_proof.ok_or(Error::Custom(
+            "No ZK proof present for verification, nzk_data.zk_proof is none!".to_string(),
+        ))?;
 
         let dir = tempdir()?;
         let proof_path = dir.path().join("proof.json");
@@ -292,15 +298,14 @@ impl OracleFeeder for CyborgOracleFeeder {
             _ => return Err("Verification failed".into()),
         };
 
-        let result: (OracleKey<AccountId32>, OracleValue) = (
+        let result: (OracleKey, OracleValue) = (
             OracleKey::NzkProofResult(task_id),
             OracleValue::ZkProofResult(bool_result),
         );
 
         let result = vec![result];
 
-        let feed_oracle_tx =
-            SubstrateApi::tx().oracle().feed_values(BoundedVec(result));
+        let feed_oracle_tx = SubstrateApi::tx().oracle().feed_values(BoundedVec(result));
 
         println!(
             "Feed Oracle NeuroZk Parameters: {:?}",
@@ -353,35 +358,31 @@ impl OracleFeeder for CyborgOracleFeeder {
     }
 
     async fn collect_miner_data(&self) -> Result<(), subxt::Error> {
-        let mut new_miner_data: Vec<(OracleKey<AccountId32>, OracleValue)> = Vec::new();
+        let mut new_miner_data: Vec<(OracleKey, OracleValue)> = Vec::new();
 
-        let miner_clusters_address = SubstrateApi::storage()
-            .edge_connect()
-            .cloud_miners_iter();
+        let cloud_miners_address = SubstrateApi::storage().edge_connect().cloud_miners_iter();
 
-        let executable_miners_address = SubstrateApi::storage()
-            .edge_connect()
-            .edge_miners_iter();
+        let edge_miners_address = SubstrateApi::storage().edge_connect().edge_miners_iter();
 
         let client = CLIENT.get().ok_or("Failed to get client")?;
 
-        let mut miner_clusters_query = client
+        let mut cloud_miners_query = client
             .storage()
             .at_latest()
             .await?
-            .iter(miner_clusters_address)
+            .iter(cloud_miners_address)
             .await?;
 
-        let mut executable_miners_query = client
+        let mut edge_miners_query = client
             .storage()
             .at_latest()
             .await?
-            .iter(executable_miners_address)
+            .iter(edge_miners_address)
             .await?;
 
         println!("Collecting miner data...");
 
-        while let Some(Ok(miner)) = miner_clusters_query.next().await {
+        while let Some(Ok(miner)) = cloud_miners_query.next().await {
             let miner_ip = String::from_utf8_lossy(&miner.value.api.domain.0).to_string();
 
             println!("Miner IP: {}", miner_ip);
@@ -390,14 +391,14 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             new_miner_data.push((
                 OracleKey::Miner(OracleMinerFormat {
-                    id: (miner.value.owner, miner.value.id),
+                    id: miner.value.id,
                     miner_type: MinerType::Edge,
                 }),
                 OracleValue::MinerStatus(process_status),
             ));
         }
 
-        while let Some(Ok(miner)) = executable_miners_query.next().await {
+        while let Some(Ok(miner)) = edge_miners_query.next().await {
             let miner_ip = String::from_utf8_lossy(&miner.value.api.domain.0).to_string();
 
             println!("Miner IP: {}", miner_ip);
@@ -406,7 +407,7 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             new_miner_data.push((
                 OracleKey::Miner(OracleMinerFormat {
-                    id: (miner.value.owner, miner.value.id),
+                    id: miner.value.id,
                     miner_type: MinerType::Edge,
                 }),
                 OracleValue::MinerStatus(process_status),
@@ -466,10 +467,7 @@ impl OracleFeeder for CyborgOracleFeeder {
                 }
             }
             Err(error) => {
-                println!(
-                    "Miner with ip {} is not online. Error: {}",
-                    miner_ip, error
-                );
+                println!("Miner with ip {} is not online. Error: {}", miner_ip, error);
                 ProcessStatus {
                     online: false,
                     available: false,
