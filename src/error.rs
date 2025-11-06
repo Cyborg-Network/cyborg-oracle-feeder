@@ -2,13 +2,12 @@ use derive_more::From;
 use subxt::ext::subxt_core;
 
 /// A type alias for a `Result` with the custom error enum `Error`.
-pub type Result<T> = core::result::Result<T, Error>;
+pub type Result<T, E = Box<Error>> = core::result::Result<T, E>;
 
 /// The custom error enum for the cyborg worker. This error enum covers all of the error variants that can occur,
 /// enabling all errors to be handled with the `?` operator, but not preventing handling the errors more precisely.
 #[derive(Debug, From)]
 #[allow(dead_code)]
-
 pub enum Error {
     #[from]
     Custom(String),
@@ -28,6 +27,9 @@ pub enum Error {
 
     #[from]
     Conversion(std::string::FromUtf8Error),
+
+    #[from]
+    Reqwest(reqwest::Error),
 }
 
 #[allow(dead_code)]

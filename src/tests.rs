@@ -48,7 +48,7 @@ mod tests {
             Ok(())
         }
 
-        async fn get_miner_data(&self, _miner_ip: &String) -> ProcessStatus {
+        async fn get_miner_data(&self, _miner_ip: &str) -> ProcessStatus {
             ProcessStatus {
                 online: true,
                 available: true,
@@ -239,7 +239,7 @@ mod tests {
     fn test_transaction_output_debug() {
         let output = TxOutput::OracleFeedSuccess;
         // This should not panic
-        format!("{:?}", output);
+        let _ = format!("{:?}", output);
     }
 
     #[tokio::test]

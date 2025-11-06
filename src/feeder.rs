@@ -57,8 +57,8 @@ pub struct CyborgOracleFeeder {
 impl Clone for ProcessStatus {
     fn clone(&self) -> Self {
         ProcessStatus {
-            available: self.available.clone(),
-            online: self.online.clone(),
+            available: self.available,
+            online: self.online,
         }
     }
 }
@@ -82,7 +82,7 @@ impl Clone for OracleKey {
     fn clone(&self) -> Self {
         match self {
             Self::Miner(miner) => Self::Miner(miner.clone()),
-            Self::NzkProofResult(task_id) => Self::NzkProofResult(task_id.clone()),
+            Self::NzkProofResult(task_id) => Self::NzkProofResult(*task_id),
         }
     }
 }
@@ -90,7 +90,7 @@ impl Clone for OracleValue {
     fn clone(&self) -> Self {
         match self {
             Self::MinerStatus(process_status) => Self::MinerStatus(process_status.clone()),
-            Self::ZkProofResult(result) => Self::ZkProofResult(result.clone()),
+            Self::ZkProofResult(result) => Self::ZkProofResult(*result),
         }
     }
 }
@@ -134,7 +134,7 @@ pub trait OracleFeeder {
     ///
     /// # Returns
     /// An `Option<String>` containing relevant information derived from the event, or `None` if no information is extracted.
-    async fn get_miner_data(&self, miner_ip: &String) -> ProcessStatus;
+    async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus;
 
     async fn process_block(
         &self,
@@ -290,11 +290,9 @@ impl OracleFeeder for CyborgOracleFeeder {
 
         println!("Verification result: {}", string_result);
 
-        let bool_result: bool;
-
-        match string_result.as_str() {
-            "true" => bool_result = true,
-            "false" => bool_result = false,
+        let bool_result = match string_result.as_str() {
+            "true" => true,
+            "false" => false,
             _ => return Err("Verification failed".into()),
         };
 
@@ -340,8 +338,9 @@ impl OracleFeeder for CyborgOracleFeeder {
                         println!("Extrinsic failed with error: {:?}", system_event);
                         println!("Dispatch error: {:?}", system_event.dispatch_error);
                         return Err("Extrinsic failed on chain".into());
-                    } else if let Some(_) =
-                        ev.as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()?
+                    } else if ev
+                        .as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()?
+                        .is_some()
                     {
                         println!("Extrinsic succeeded!");
                         // Return success instead of the malformed match arm
@@ -421,7 +420,7 @@ impl OracleFeeder for CyborgOracleFeeder {
         Ok(())
     }
 
-    async fn get_miner_data(&self, miner_ip: &String) -> ProcessStatus {
+    async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus {
         async fn process_response(
             response: reqwest::Response,
         ) -> Result<MinerHealthResponse, Box<dyn std::error::Error>> {
@@ -491,7 +490,9 @@ impl OracleFeeder for CyborgOracleFeeder {
                 .enqueue(move || {
                     let miners_data = miners_data.clone();
                     async move {
-                        let client = CLIENT.get().ok_or("Failed to get client")?;
+                        let client = CLIENT
+                            .get()
+                            .ok_or_else(|| Error::custom("Failed to get client"))?;
                         let keypair = load_cyborg_test_key()?;
 
                         let feed_oracle_tx = SubstrateApi::tx()
@@ -510,9 +511,11 @@ impl OracleFeeder for CyborgOracleFeeder {
                             .map_err(|e| {
                                 log::error!("Failed to submit transaction: {}", e);
                                 e
-                            })?
+                            })
+                            .map_err(|e| Error::custom(e.to_string()))?
                             .wait_for_finalized_success()
-                            .await?;
+                            .await
+                            .map_err(|e| Error::custom(e.to_string()))?;
 
                         Ok(TxOutput::OracleFeedSuccess)
                     }
