@@ -23,6 +23,9 @@ mod feeder;
 mod substrate_interface;
 mod tx_queue;
 
+#[cfg(test)]
+mod tests;
+
 use std::sync::Arc;
 
 use crate::config::config;
