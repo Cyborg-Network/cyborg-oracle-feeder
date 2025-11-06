@@ -1,6 +1,5 @@
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::{
         account::load_cyborg_test_key,
         error::Error,
