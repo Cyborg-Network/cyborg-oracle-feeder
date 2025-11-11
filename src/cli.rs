@@ -6,7 +6,6 @@ use clap::{Parser, Subcommand};
     about = "Am executable that will query the available miners and submit the results to the oracle.", // Description shown in the CLI help.
     version = "1.0" // Version number of the CLI tool.
 )]
-
 /// `Cli` struct defines the command-line interface for the Cyborg oracle-feeder.
 /// This struct uses the `clap` crate to parse command-line arguments.
 /// It contains a single field `command` which specifies the subcommand to be executed.

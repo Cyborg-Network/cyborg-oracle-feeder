@@ -23,6 +23,9 @@ mod feeder;
 mod substrate_interface;
 mod tx_queue;
 
+#[cfg(test)]
+mod tests;
+
 use std::sync::Arc;
 
 use crate::config::config;
@@ -55,7 +58,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
             // Build feeder
             let feeder = CyborgOracleFeederBuilder::default()
-                .keypair(&account_seed)
+                .keypair(account_seed)
                 .expect("Failed to set keypair")
                 .build()
                 .await?;

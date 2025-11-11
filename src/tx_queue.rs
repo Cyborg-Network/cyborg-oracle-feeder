@@ -15,7 +15,7 @@ use tokio::sync::{oneshot, Mutex};
 const MAX_RETRIES: u32 = 500;
 
 /// The type of an async transaction executor closure: no args, returns a Future Result
-type TxExecutor =
+pub type TxExecutor =
     Box<dyn Fn() -> Pin<Box<dyn Future<Output = Result<TxOutput>> + Send>> + Send + Sync>;
 
 #[derive(Debug)]
@@ -25,13 +25,13 @@ pub enum TxOutput {
 }
 
 pub struct Transaction {
-    executor: TxExecutor,
-    responder: Option<oneshot::Sender<Result<TxOutput>>>,
-    retry_count: u32,
+    pub executor: TxExecutor,
+    pub responder: Option<oneshot::Sender<Result<TxOutput>>>,
+    pub retry_count: u32,
 }
 
 impl Transaction {
-    fn new(executor: TxExecutor, responder: Option<oneshot::Sender<Result<TxOutput>>>) -> Self {
+    pub fn new(executor: TxExecutor, responder: Option<oneshot::Sender<Result<TxOutput>>>) -> Self {
         Self {
             executor,
             retry_count: 0,
@@ -43,18 +43,18 @@ impl Transaction {
         (self.executor)().await
     }
 
-    fn increment_retry(&mut self) {
+    pub fn increment_retry(&mut self) {
         self.retry_count += 1;
     }
 
-    fn retry_count(&self) -> u32 {
+    pub fn retry_count(&self) -> u32 {
         self.retry_count
     }
 }
 
 pub struct TransactionQueue {
-    inner: Arc<Mutex<VecDeque<Transaction>>>,
-    processing: Arc<AtomicBool>,
+    pub inner: Arc<Mutex<VecDeque<Transaction>>>,
+    pub processing: Arc<AtomicBool>,
 }
 
 pub static TRANSACTION_QUEUE: OnceCell<TransactionQueue> = OnceCell::new();
