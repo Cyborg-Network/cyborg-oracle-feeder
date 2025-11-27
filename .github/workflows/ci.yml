@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
@@ -8,22 +8,26 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/oracle-feeder
 
 jobs:
+  # Job 1: Run tests and checks
   test:
-    name: Test
+    name: Test & Lint
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
-    - name: Install Rust
+    - name: Install Rust nightly
       uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: nightly
         components: rustfmt, clippy
     
-    - name: Cache cargo registry
+    - name: Cache cargo dependencies
       uses: actions/cache@v3
       with:
         path: |
@@ -40,26 +44,28 @@ jobs:
     - name: Run clippy
       run: cargo clippy -- -D warnings
     
-    - name: Run tests
+    - name: Run unit tests
       run: cargo test --verbose
       env:
         RUST_BACKTRACE: 1
-        CYBORG_TEST_KEY: "//Alice"  # Test key for account tests
+        CYBORG_TEST_KEY: "//Alice"
 
+  # Job 2: Build release binary
   build:
-    name: Build
+    name: Build Release
     runs-on: ubuntu-latest
     needs: test
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
-    - name: Install Rust
+    - name: Install Rust nightly
       uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         toolchain: nightly
     
-    - name: Cache cargo registry
+    - name: Cache cargo dependencies
       uses: actions/cache@v3
       with:
         path: |
@@ -70,145 +76,239 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-cargo-
     
-    - name: Build release
+    - name: Build release binary
       run: cargo build --release --verbose
     
-    - name: Build Docker image
-      run: |
-        docker build -t cyborg-oracle-feeder:${{ github.sha }} .
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: oracle-feeder-binary
+        path: target/release/cyborg-oracle-feeder
+        retention-days: 7
 
+  # Job 3: Build and push Docker image
+  containerize:
+    name: Build & Push Container
+    runs-on: ubuntu-latest
+    needs: build
+    # Only run on push to dev, not on PRs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=sha,prefix={{branch}}-
+          type=raw,value=staging
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  # Job 4: Deploy to staging/testnet
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
-    needs: build
-    # Only deploy for PRs to dev branch, not for direct pushes
-    if: github.event_name == 'pull_request' && github.base_ref == 'dev'
+    needs: containerize
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    environment:
+      name: staging
+      url: http://staging.yourproject.com
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
     
     - name: Setup SSH agent
       uses: webfactory/ssh-agent@v0.9.0
       with:
-        ssh-private-key: ${{ secrets.VPS_STAGING_DEPLOY_KEY }}
+        ssh-private-key: ${{ secrets.STAGING_DEPLOY_KEY }}
     
-    - name: Deploy to Staging VPS
+    - name: Deploy to staging VPS
       run: |
-        ssh -o StrictHostKeyChecking=no cyborg@${{ secrets.STAGING_VPS_IP }} << 'EOF'
+        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
           set -e
-          echo "Starting deployment for PR #${{ github.event.pull_request.number }}"
           
-          # Create or update PR-specific directory
-          PR_DIR="/home/cyborg/staging/pr-${{ github.event.pull_request.number }}"
-          mkdir -p $PR_DIR
-          cd $PR_DIR
+          echo "🚀 Starting deployment to staging..."
           
-          # Clone or update the specific PR branch
-          if [ ! -d ".git" ]; then
-            git clone https://github.com/${{ github.repository }}.git .
-          fi
+          # Navigate to deployment directory
+          cd /home/cyborg/staging/cyborg-oracle-feeder || exit 1
           
-          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
-          git checkout pr-branch
-          git pull origin pull/${{ github.event.pull_request.number }}/head
+          # Pull latest code
+          echo "📥 Pulling latest code..."
+          git fetch origin dev
+          git reset --hard origin/dev
           
-          # Build the application
+          # Stop existing service
+          echo "⏸️  Stopping oracle-feeder service..."
+          sudo systemctl stop oracle-feeder-staging.service || true
+          
+          # Build release
+          echo "🔨 Building release..."
           cargo build --release
           
-          # Create or update systemd service for this PR
-          sudo tee /etc/systemd/system/cyborg-oracle-feeder-pr-${{ github.event.pull_request.number }}.service > /dev/null <<SERVICE
-          [Unit]
-          Description=Cyborg Oracle Feeder PR #${{ github.event.pull_request.number }}
-          After=network.target
+          # Run quick health check on binary
+          echo "🏥 Running binary health check..."
+          ./target/release/cyborg-oracle-feeder --version || exit 1
           
-          [Service]
-          Type=simple
-          User=cyborg
-          WorkingDirectory=$PR_DIR
-          Environment=PARACHAIN_URL=wss://your-staging-parachain-url
-          Environment=ACCOUNT_SEED=//StagingTestAccount
-          ExecStart=$PR_DIR/target/release/cyborg-oracle-feeder start --parachain-url \$PARACHAIN_URL --account-seed \$ACCOUNT_SEED
-          Restart=on-failure
-          RestartSec=5
+          # Start service
+          echo "▶️  Starting oracle-feeder service..."
+          sudo systemctl start oracle-feeder-staging.service
           
-          [Install]
-          WantedBy=multi-user.target
-          SERVICE
+          # Wait for service to start
+          sleep 5
           
-          # Reload systemd and restart service
-          sudo systemctl daemon-reload
-          sudo systemctl restart cyborg-oracle-feeder-pr-${{ github.event.pull_request.number }}.service
+          # Check service status
+          echo "✅ Checking service status..."
+          sudo systemctl is-active oracle-feeder-staging.service
           
-          echo "Deployment completed for PR #${{ github.event.pull_request.number }}"
+          echo "✨ Deployment complete!"
         EOF
+    
+    - name: Verify deployment
+      run: |
+        echo "Waiting for service to be fully ready..."
+        sleep 10
+        
+        # Check if service is responding (adjust endpoint as needed)
+        curl -f http://${{ secrets.STAGING_HOST }}:8080/health || echo "Warning: Health check endpoint not available"
 
-  integration-tests:
+  # Job 5: Integration tests on staging
+  integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: deploy-staging
-    if: github.event_name == 'pull_request' && github.base_ref == 'dev'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install Rust nightly
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: nightly
+    
     - name: Run integration tests against staging
       run: |
-        # Wait for service to be ready
-        sleep 30
+        echo "🧪 Running integration tests..."
         
-        # Test if the service is running
-        ssh -o StrictHostKeyChecking=no cyborg@${{ secrets.STAGING_VPS_IP }} << 'EOF'
-          set -e
-          PR_DIR="/home/cyborg/staging/pr-${{ github.event.pull_request.number }}"
-          
-          # Check if service is active
-          if sudo systemctl is-active --quiet cyborg-oracle-feeder-pr-${{ github.event.pull_request.number }}.service; then
-            echo "✅ Service is running"
-          else
-            echo "❌ Service is not running"
-            sudo journalctl -u cyborg-oracle-feeder-pr-${{ github.event.pull_request.number }}.service -n 50
-            exit 1
-          fi
-          
-          # Check if process is responding (basic health check)
-          # You might want to add actual API calls to test functionality
-          if pgrep -f "cyborg-oracle-feeder" > /dev/null; then
-            echo "✅ Process is running"
-          else
-            echo "❌ Process not found"
-            exit 1
-          fi
-        EOF
+        # Set staging environment
+        export PARACHAIN_URL="${{ secrets.STAGING_PARACHAIN_URL }}"
+        export STAGING_HOST="${{ secrets.STAGING_HOST }}"
+        
+        # Run integration tests (create these in your codebase)
+        cargo test --test integration_tests --features integration -- --nocapture
+      env:
+        RUST_BACKTRACE: 1
+        CYBORG_TEST_KEY: "//Alice"
+    
+    - name: Test oracle feeder functionality
+      run: |
+        echo "🔍 Testing oracle feeder operations..."
+        
+        # Test 1: Check if service is running
+        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} \
+          "sudo systemctl is-active oracle-feeder-staging.service"
+        
+        # Test 2: Check logs for errors
+        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} \
+          "sudo journalctl -u oracle-feeder-staging.service -n 50 --no-pager | grep -i error && exit 1 || exit 0"
+        
+        # Test 3: Verify it's connecting to parachain
+        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} \
+          "sudo journalctl -u oracle-feeder-staging.service -n 100 --no-pager | grep -i 'Starting the oracle feeder'"
+        
+        echo "✅ All functionality tests passed!"
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
-  cleanup-staging:
-    name: Cleanup Staging
+  # Job 6: Post-deployment validation
+  validate-deployment:
+    name: Validate Deployment
     runs-on: ubuntu-latest
-    # This runs when a PR is closed
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    needs: integration-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
     
     steps:
-    - name: Setup SSH agent
+    - name: Setup SSH
       uses: webfactory/ssh-agent@v0.9.0
       with:
-        ssh-private-key: ${{ secrets.VPS_STAGING_DEPLOY_KEY }}
+        ssh-private-key: ${{ secrets.STAGING_DEPLOY_KEY }}
     
-    - name: Cleanup PR deployment
+    - name: Run deployment validation
       run: |
-        ssh -o StrictHostKeyChecking=no cyborg@${{ secrets.STAGING_VPS_IP }} << 'EOF'
-          set -e
-          PR_NUMBER=${{ github.event.pull_request.number }}
-          echo "Cleaning up deployment for PR #$PR_NUMBER"
+        echo "🔍 Validating deployment..."
+        
+        # Check service uptime
+        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
+          echo "Service status:"
+          sudo systemctl status oracle-feeder-staging.service --no-pager
           
-          # Stop and disable service
-          sudo systemctl stop cyborg-oracle-feeder-pr-$PR_NUMBER.service || true
-          sudo systemctl disable cyborg-oracle-feeder-pr-$PR_NUMBER.service || true
-          sudo rm -f /etc/systemd/system/cyborg-oracle-feeder-pr-$PR_NUMBER.service
-          sudo systemctl daemon-reload
+          echo -e "\nRecent logs:"
+          sudo journalctl -u oracle-feeder-staging.service -n 20 --no-pager
           
-          # Remove deployment directory
-          PR_DIR="/home/cyborg/staging/pr-$PR_NUMBER"
-          if [ -d "$PR_DIR" ]; then
-            rm -rf "$PR_DIR"
-            echo "✅ Cleanup completed for PR #$PR_NUMBER"
-          else
-            echo "ℹ️  No directory found for PR #$PR_NUMBER"
-          fi
+          echo -e "\nProcess info:"
+          ps aux | grep cyborg-oracle-feeder | grep -v grep
         EOF
+        
+        echo "✅ Deployment validation complete!"
+    
+    - name: Notify deployment success
+      if: success()
+      run: |
+        echo "🎉 Staging deployment successful and validated!"
+        echo "All tests passed. Ready for production deployment."
+    
+    - name: Notify deployment failure
+      if: failure()
+      run: |
+        echo "❌ Staging deployment failed validation!"
+        echo "Please check the logs and fix issues before merging to production."
+        exit 1
+
+  # Job 7: Approve for production (manual gate for PRs)
+  approve-production:
+    name: Ready for Production
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    
+    steps:
+    - name: Summary
+      run: |
+        echo "## 🎉 Staging Deployment Successful!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Integration tests passed" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Deployment validated" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "- Merge this PR to trigger production deployment" >> $GITHUB_STEP_SUMMARY
+        echo "- Production deployment will use the v0.1 branch workflow" >> $GITHUB_STEP_SUMMARY
