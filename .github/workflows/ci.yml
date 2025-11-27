@@ -98,12 +98,13 @@ jobs:
         path: target/release/cyborg-oracle-feeder
         retention-days: 7
 
-  # Job 3: Build and push Docker image (only on push to dev, not PRs)
+  # Job 3: Build and push Docker image (run on both PRs and pushes to dev)
   containerize:
     name: Build & Push Container
     runs-on: ubuntu-latest
     needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    # Run on both PRs targeting dev and pushes to dev
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || (github.event_name == 'pull_request' && github.base_ref == 'dev')
     permissions:
       contents: read
       packages: write
@@ -128,9 +129,13 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         tags: |
+          # For PRs, use PR number and commit SHA
+          type=ref,event=pr
+          type=sha,prefix=pr-
+          # For pushes to dev, use branch and staging tags
           type=ref,event=branch
           type=sha,prefix={{branch}}-
-          type=raw,value=staging
+          type=raw,value=staging,enable=${{ github.event_name == 'push' }}
     
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -142,12 +147,13 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  # Job 4: Deploy to staging/testnet (only on push to dev)
+  # Job 4: Deploy to staging/testnet (run on both PRs and pushes to dev)
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: containerize
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    # Run on both PRs targeting dev and pushes to dev
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || (github.event_name == 'pull_request' && github.base_ref == 'dev')
     environment:
       name: staging
       url: http://staging.yourproject.com
@@ -210,12 +216,13 @@ jobs:
         # Check if service is responding (adjust endpoint as needed)
         curl -f http://${{ secrets.STAGING_HOST }}:8080/health || echo "Warning: Health check endpoint not available"
 
-  # Job 5: Integration tests on staging (only on push to dev)
+  # Job 5: Integration tests on staging (run on both PRs and pushes to dev)
   integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: deploy-staging
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    # Run on both PRs targeting dev and pushes to dev
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || (github.event_name == 'pull_request' && github.base_ref == 'dev')
     
     steps:
     - name: Checkout code
@@ -258,12 +265,13 @@ jobs:
         
         echo "✅ All functionality tests passed!"
 
-  # Job 6: Post-deployment validation (only on push to dev)
+  # Job 6: Post-deployment validation (run on both PRs and pushes to dev)
   validate-deployment:
     name: Validate Deployment
     runs-on: ubuntu-latest
     needs: integration-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    # Run on both PRs targeting dev and pushes to dev
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/dev') || (github.event_name == 'pull_request' && github.base_ref == 'dev')
     
     steps:
     - name: Setup SSH
@@ -302,23 +310,55 @@ jobs:
         echo "Please check the logs and fix issues before merging to production."
         exit 1
 
-  # Job 7: PR Quality Gate
-  pr-quality-gate:
-    name: PR Quality Gate
+  # Job 7: Merge Approval Gate
+  merge-approval:
+    name: Merge Approval
     runs-on: ubuntu-latest
-    needs: [test-and-lint, build]
-    if: github.event_name == 'pull_request'
+    needs: [test-and-lint, build, containerize, deploy-staging, integration-test, validate-deployment]
+    if: github.event_name == 'pull_request' && github.base_ref == 'dev'
     
     steps:
-    - name: Check PR quality
+    - name: Check PR readiness
       run: |
-        echo "## PR Quality Check Results ✅" >> $GITHUB_STEP_SUMMARY
+        echo "## ✅ PR Ready for Merge" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### All checks passed:" >> $GITHUB_STEP_SUMMARY
+        echo "### All CI checks passed:" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Code formatting" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Clippy linting" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Unit tests" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Integration tests" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ Build successful" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Container built and pushed" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Staging deployment successful" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Integration tests passed on staging" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ Deployment validation passed" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "This PR is ready for review and merge!" >> $GITHUB_STEP_SUMMARY
+        echo "**This PR has been fully tested on staging and is ready for merge!**" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "- Request reviews from maintainers" >> $GITHUB_STEP_SUMMARY
+        echo "- Merge this PR to complete the deployment" >> $GITHUB_STEP_SUMMARY
+
+  # Job 8: Production Ready (for push events only)
+  production-ready:
+    name: Ready for Production
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: github.event_name == 'push' && github.ref == 'refs/heads/dev'
+    
+    steps:
+    - name: Summary
+      run: |
+        echo "## 🎉 Dev Branch Updated Successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ All tests passed" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Integration tests passed" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Deployment validated on staging" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Staging Environment:" >> $GITHUB_STEP_SUMMARY
+        echo "- **URL**: http://staging.yourproject.com" >> $GITHUB_STEP_SUMMARY
+        echo "- **Status**: ✅ Running" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+        echo "- Monitor staging environment for any issues" >> $GITHUB_STEP_SUMMARY
+        echo "- Create a release when ready for production" >> $GITHUB_STEP_SUMMARY
