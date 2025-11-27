@@ -213,7 +213,7 @@ jobs:
         echo "Waiting for service to be fully ready..."
         sleep 10
         
-        # Check if service is responding (adjust endpoint as needed)
+        # Check if service is responding
         curl -f http://${{ secrets.STAGING_HOST }}:8080/health || echo "Warning: Health check endpoint not available"
 
   # Job 5: Integration tests on staging (run on both PRs and pushes to dev)
