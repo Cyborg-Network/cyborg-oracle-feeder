@@ -39,7 +39,7 @@ impl Transaction {
         }
     }
 
-    async fn execute(&self) -> Result<TxOutput> {
+    pub async fn execute(&self) -> Result<TxOutput> {
         (self.executor)().await
     }
 
