@@ -75,11 +75,15 @@ mod tests {
             "--account-seed",
             "//Alice",
         ];
-        
+
         let cli = Cli::parse_from(args);
-        
+
         assert!(cli.command.is_some());
-        if let Some(Commands::Start { parachain_url, account_seed }) = cli.command {
+        if let Some(Commands::Start {
+            parachain_url,
+            account_seed,
+        }) = cli.command
+        {
             assert_eq!(parachain_url, "ws://localhost:9944");
             assert_eq!(account_seed, "//Alice");
         } else {
