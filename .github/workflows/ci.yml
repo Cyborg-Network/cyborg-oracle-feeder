@@ -72,3 +72,143 @@ jobs:
     
     - name: Build release
       run: cargo build --release --verbose
+    
+    - name: Build Docker image
+      run: |
+        docker build -t cyborg-oracle-feeder:${{ github.sha }} .
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    # Only deploy for PRs to dev branch, not for direct pushes
+    if: github.event_name == 'pull_request' && github.base_ref == 'dev'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup SSH agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_STAGING_DEPLOY_KEY }}
+    
+    - name: Deploy to Staging VPS
+      run: |
+        ssh -o StrictHostKeyChecking=no cyborg@${{ secrets.STAGING_VPS_IP }} << 'EOF'
+          set -e
+          echo "Starting deployment for PR #${{ github.event.pull_request.number }}"
+          
+          # Create or update PR-specific directory
+          PR_DIR="/home/cyborg/staging/pr-${{ github.event.pull_request.number }}"
+          mkdir -p $PR_DIR
+          cd $PR_DIR
+          
+          # Clone or update the specific PR branch
+          if [ ! -d ".git" ]; then
+            git clone https://github.com/${{ github.repository }}.git .
+          fi
+          
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr-branch
+          git checkout pr-branch
+          git pull origin pull/${{ github.event.pull_request.number }}/head
+          
+          # Build the application
+          cargo build --release
+          
+          # Create or update systemd service for this PR
+          sudo tee /etc/systemd/system/cyborg-oracle-feeder-pr-${{ github.event.pull_request.number }}.service > /dev/null <<SERVICE
+          [Unit]
+          Description=Cyborg Oracle Feeder PR #${{ github.event.pull_request.number }}
+          After=network.target
+          
+          [Service]
+          Type=simple
+          User=cyborg
+          WorkingDirectory=$PR_DIR
+          Environment=PARACHAIN_URL=wss://your-staging-parachain-url
+          Environment=ACCOUNT_SEED=//StagingTestAccount
+          ExecStart=$PR_DIR/target/release/cyborg-oracle-feeder start --parachain-url \$PARACHAIN_URL --account-seed \$ACCOUNT_SEED
+          Restart=on-failure
+          RestartSec=5
+          
+          [Install]
+          WantedBy=multi-user.target
+          SERVICE
+          
+          # Reload systemd and restart service
+          sudo systemctl daemon-reload
+          sudo systemctl restart cyborg-oracle-feeder-pr-${{ github.event.pull_request.number }}.service
+          
+          echo "Deployment completed for PR #${{ github.event.pull_request.number }}"
+        EOF
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.event_name == 'pull_request' && github.base_ref == 'dev'
+    
+    steps:
+    - name: Run integration tests against staging
+      run: |
+        # Wait for service to be ready
+        sleep 30
+        
+        # Test if the service is running
+        ssh -o StrictHostKeyChecking=no cyborg@${{ secrets.STAGING_VPS_IP }} << 'EOF'
+          set -e
+          PR_DIR="/home/cyborg/staging/pr-${{ github.event.pull_request.number }}"
+          
+          # Check if service is active
+          if sudo systemctl is-active --quiet cyborg-oracle-feeder-pr-${{ github.event.pull_request.number }}.service; then
+            echo "✅ Service is running"
+          else
+            echo "❌ Service is not running"
+            sudo journalctl -u cyborg-oracle-feeder-pr-${{ github.event.pull_request.number }}.service -n 50
+            exit 1
+          fi
+          
+          # Check if process is responding (basic health check)
+          # You might want to add actual API calls to test functionality
+          if pgrep -f "cyborg-oracle-feeder" > /dev/null; then
+            echo "✅ Process is running"
+          else
+            echo "❌ Process not found"
+            exit 1
+          fi
+        EOF
+
+  cleanup-staging:
+    name: Cleanup Staging
+    runs-on: ubuntu-latest
+    # This runs when a PR is closed
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    
+    steps:
+    - name: Setup SSH agent
+      uses: webfactory/ssh-agent@v0.9.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_STAGING_DEPLOY_KEY }}
+    
+    - name: Cleanup PR deployment
+      run: |
+        ssh -o StrictHostKeyChecking=no cyborg@${{ secrets.STAGING_VPS_IP }} << 'EOF'
+          set -e
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          echo "Cleaning up deployment for PR #$PR_NUMBER"
+          
+          # Stop and disable service
+          sudo systemctl stop cyborg-oracle-feeder-pr-$PR_NUMBER.service || true
+          sudo systemctl disable cyborg-oracle-feeder-pr-$PR_NUMBER.service || true
+          sudo rm -f /etc/systemd/system/cyborg-oracle-feeder-pr-$PR_NUMBER.service
+          sudo systemctl daemon-reload
+          
+          # Remove deployment directory
+          PR_DIR="/home/cyborg/staging/pr-$PR_NUMBER"
+          if [ -d "$PR_DIR" ]; then
+            rm -rf "$PR_DIR"
+            echo "✅ Cleanup completed for PR #$PR_NUMBER"
+          else
+            echo "ℹ️  No directory found for PR #$PR_NUMBER"
+          fi
+        EOF
