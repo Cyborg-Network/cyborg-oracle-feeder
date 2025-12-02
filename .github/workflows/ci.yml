@@ -151,193 +151,195 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  # Job 4: Deploy to staging/testnet using self-hosted runner
+  # Job 4: Deploy to staging on VPS (using self-hosted runner)
   deploy-staging:
-    name: Deploy to Staging
+    name: Deploy to Staging (VPS)
     runs-on: self-hosted
-    needs: containerize
+    needs: [test-and-lint, build, containerize]
     if: github.event_name == 'pull_request' && github.base_ref == 'dev'
-    environment:
-      name: staging
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha }}  # Checkout PR code
     
     - name: Download binary artifact
       uses: actions/download-artifact@v4
       with:
         name: oracle-feeder-binary
     
-    - name: Set up Rust environment
+    - name: Verify parachain is running locally
       run: |
-        echo "Setting up Rust environment..."
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly
-        source $HOME/.cargo/env
-        rustup component add rustfmt clippy
+        echo "🔍 Checking if parachain is running on VPS..."
+        
+        # Check if port 9944 is listening (assuming default parachain port)
+        if ss -tulpn | grep -q ":9944"; then
+          echo "✅ Parachain is running on port 9944"
+        else
+          echo "❌ Parachain NOT detected on port 9944"
+          echo "Please ensure parachain is running on this VPS with:"
+          echo "  ./cyborg-node --dev --ws-port 9944"
+          exit 1
+        fi
     
-    - name: Build and deploy locally
+    - name: Deploy oracle feeder
       env:
         PARACHAIN_URL: ${{ secrets.STAGING_PARACHAIN_URL }}
         ACCOUNT_SEED: ${{ secrets.STAGING_ACCOUNT_SEED }}
       run: |
-        echo "🚀 Starting deployment to staging environment..."
+        echo "🚀 Deploying oracle feeder to VPS..."
         
         # Make binary executable
         chmod +x cyborg-oracle-feeder
         
-        # Run quick health check on binary
-        echo "🏥 Running binary health check..."
-        ./cyborg-oracle-feeder --version || (echo "Binary health check failed" && exit 1)
+        # Test the binary
+        echo "🧪 Testing binary..."
+        ./cyborg-oracle-feeder --version || (echo "❌ Binary test failed" && exit 1)
         
-        # Stop existing service if running
-        echo "⏸️  Stopping oracle-feeder service..."
-        sudo systemctl stop oracle-feeder-staging.service || true
+        # Stop existing service
+        echo "⏸️  Stopping existing service..."
+        sudo systemctl stop oracle-feeder-staging.service 2>/dev/null || true
         
-        # Wait a moment
-        sleep 2
-        
-        # Copy binary to staging location
+        # Install binary
         echo "📦 Installing binary..."
-        sudo cp cyborg-oracle-feeder /usr/local/bin/cyborg-oracle-feeder-staging
-        sudo chmod +x /usr/local/bin/cyborg-oracle-feeder-staging
+        sudo install -m 755 -o runner -g runner cyborg-oracle-feeder /usr/local/bin/cyborg-oracle-feeder-staging
         
-        # Create or update systemd service
-        echo "⚙️  Configuring systemd service..."
+        # Ensure data directory exists
+        echo "📁 Setting up data directory..."
+        sudo mkdir -p /home/runner/.local/share/cyborg-oracle-feeder
+        sudo chown -R runner:runner /home/runner/.local/share/cyborg-oracle-feeder
+        
+        # Create systemd service
+        echo "⚙️  Creating systemd service..."
         sudo tee /etc/systemd/system/oracle-feeder-staging.service > /dev/null << EOF
         [Unit]
-        Description=Cyborg Oracle Feeder Staging
+        Description=Cyborg Oracle Feeder (Staging on VPS)
         After=network.target
+        Wants=network.target
         
         [Service]
         Type=simple
         User=runner
+        Group=runner
         WorkingDirectory=/home/runner
+        Environment="RUST_LOG=info"
         Environment="PARACHAIN_URL=$PARACHAIN_URL"
         Environment="ACCOUNT_SEED=$ACCOUNT_SEED"
-        ExecStart=/usr/local/bin/cyborg-oracle-feeder-staging start --parachain-url \$PARACHAIN_URL --account-seed "\$ACCOUNT_SEED"
+        ExecStart=/usr/local/bin/cyborg-oracle-feeder-staging start \
+          --parachain-url "\$PARACHAIN_URL" \
+          --account-seed "\$ACCOUNT_SEED"
         Restart=always
         RestartSec=10
         StandardOutput=journal
         StandardError=journal
         SyslogIdentifier=oracle-feeder-staging
         
+        # Security settings
+        NoNewPrivileges=true
+        PrivateTmp=true
+        ProtectSystem=strict
+        ReadWritePaths=/home/runner/.local/share/cyborg-oracle-feeder
+        
         [Install]
         WantedBy=multi-user.target
         EOF
         
-        # Reload systemd and start service
+        # Enable and start service
         echo "🔄 Reloading systemd..."
         sudo systemctl daemon-reload
         sudo systemctl enable oracle-feeder-staging.service
         
-        echo "▶️  Starting oracle-feeder service..."
+        echo "▶️  Starting oracle feeder..."
         sudo systemctl start oracle-feeder-staging.service
         
-        # Wait for service to start
+        # Wait and check status
         sleep 5
         
-        # Check service status
         echo "✅ Checking service status..."
-        sudo systemctl is-active oracle-feeder-staging.service
-        
-        echo "✨ Deployment complete!"
+        if sudo systemctl is-active oracle-feeder-staging.service; then
+          echo "🎉 Oracle feeder deployed successfully!"
+          echo ""
+          echo "Service info:"
+          echo "  Status: $(sudo systemctl is-active oracle-feeder-staging.service)"
+          echo "  Enabled: $(sudo systemctl is-enabled oracle-feeder-staging.service)"
+          echo "  Logs: sudo journalctl -u oracle-feeder-staging.service -f"
+        else
+          echo "❌ Service failed to start"
+          echo "Recent logs:"
+          sudo journalctl -u oracle-feeder-staging.service -n 20 --no-pager
+          exit 1
+        fi
 
-  # Job 5: Integration tests on staging (only on PRs to dev)
-  integration-test:
-    name: Integration Tests
+  # Job 5: Verify deployment on VPS
+  verify-deployment:
+    name: Verify Deployment
     runs-on: self-hosted
     needs: deploy-staging
     if: github.event_name == 'pull_request' && github.base_ref == 'dev'
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Install Rust nightly
+    - name: Verify service is running
       run: |
-        source $HOME/.cargo/env
-        rustup update nightly
-        rustup default nightly
-    
-    - name: Test oracle feeder functionality
-      env:
-        PARACHAIN_URL: ${{ secrets.STAGING_PARACHAIN_URL }}
-        ACCOUNT_SEED: ${{ secrets.STAGING_ACCOUNT_SEED }}
-      run: |
-        echo "🔍 Testing oracle feeder operations..."
+        echo "🔍 Verifying deployment..."
         
-        # Test 1: Check if service is running
-        sudo systemctl is-active oracle-feeder-staging.service
+        # Check service
+        if sudo systemctl is-active oracle-feeder-staging.service; then
+          echo "✅ Service is running"
+        else
+          echo "❌ Service is not running"
+          exit 1
+        fi
         
-        # Test 2: Check logs for errors
-        echo "=== Recent logs ==="
-        sudo journalctl -u oracle-feeder-staging.service -n 20 --no-pager | tail -20
+        # Check logs for errors
+        echo "📋 Checking logs for errors..."
+        ERRORS=$(sudo journalctl -u oracle-feeder-staging.service --since "5 minutes ago" --no-pager | grep -i "error\|fail\|panic\|exception" | head -5 || true)
         
-        # Test 3: Check process is running
-        echo "=== Process info ==="
-        ps aux | grep cyborg-oracle-feeder-staging | grep -v grep
+        if [ -n "$ERRORS" ]; then
+          echo "⚠️  Found potential issues in logs:"
+          echo "$ERRORS"
+          # Don't fail for warnings, only for critical errors
+          if echo "$ERRORS" | grep -q "panic\|fatal"; then
+            exit 1
+          fi
+        else
+          echo "✅ No critical errors found in logs"
+        fi
         
-        # Test 4: Test basic functionality
-        echo "=== Testing basic functionality ==="
-        /usr/local/bin/cyborg-oracle-feeder-staging --version
+        # Verify process is running
+        echo "🔍 Checking process..."
+        if pgrep -f "cyborg-oracle-feeder-staging" > /dev/null; then
+          echo "✅ Process is running"
+          echo "Process info:"
+          ps aux | grep "cyborg-oracle-feeder-staging" | grep -v grep
+        else
+          echo "❌ No process found"
+          exit 1
+        fi
         
-        echo "✅ All functionality tests passed!"
+        echo "🎉 All verification checks passed!"
 
-  # Job 6: Post-deployment validation (only on PRs to dev)
-  validate-deployment:
-    name: Validate Deployment
-    runs-on: self-hosted
-    needs: integration-test
-    if: github.event_name == 'pull_request' && github.base_ref == 'dev'
-    
-    steps:
-    - name: Run deployment validation
-      run: |
-        echo "🔍 Validating deployment..."
-        
-        # Check service uptime and status
-        echo "=== Service status ==="
-        sudo systemctl status oracle-feeder-staging.service --no-pager --lines=5
-        
-        echo -e "\n=== Recent logs ==="
-        sudo journalctl -u oracle-feeder-staging.service -n 10 --no-pager
-        
-        echo -e "\n=== Process info ==="
-        ps aux | grep cyborg-oracle-feeder-staging | grep -v grep
-        
-        echo -e "\n=== System resource usage ==="
-        top -bn1 | grep -i "cyborg\|oracle" || echo "No specific resource usage found"
-        
-        echo "✅ Deployment validation complete!"
-    
-    - name: Notify deployment success
-      if: success()
-      run: |
-        echo "🎉 Staging deployment successful and validated!"
-        echo "All tests passed. Ready for production deployment."
-
-  # Job 7: Merge Approval Gate
+  # Job 6: Final approval gate
   merge-approval:
-    name: Merge Approval
+    name: ✅ Ready for Merge
     runs-on: ubuntu-latest
-    needs: [test-and-lint, build, containerize, deploy-staging, integration-test, validate-deployment]
+    needs: [test-and-lint, build, containerize, deploy-staging, verify-deployment]
     if: github.event_name == 'pull_request' && github.base_ref == 'dev'
     
     steps:
-    - name: Check PR readiness
+    - name: Generate PR summary
       run: |
-        echo "## ✅ PR Ready for Merge" >> $GITHUB_STEP_SUMMARY
+        echo "## 🎉 PR Ready for Merge!" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### All CI checks passed:" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Code formatting" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Clippy linting" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Unit tests" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Integration tests" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Build successful" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Container built and pushed" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Staging deployment successful" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Integration tests passed on staging" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ Deployment validation passed" >> $GITHUB_STEP_SUMMARY
+        echo "### ✅ All CI/CD checks passed:" >> $GITHUB_STEP_SUMMARY
+        echo "- **Code Quality**: Formatting, linting, and unit tests passed" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build**: Release binary and Docker image built successfully" >> $GITHUB_STEP_SUMMARY
+        echo "- **Deployment**: Successfully deployed to VPS staging environment" >> $GITHUB_STEP_SUMMARY
+        echo "- **Verification**: Oracle feeder is running and healthy on VPS" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**This PR has been fully tested on staging and is ready for merge!**" >> $GITHUB_STEP_SUMMARY
+        echo "### 📊 Deployment Details:" >> $GITHUB_STEP_SUMMARY
+        echo "- **VPS**: Self-hosted runner with parachain" >> $GITHUB_STEP_SUMMARY
+        echo "- **Parachain**: Running locally on VPS (ws://localhost:9944)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Oracle Feeder**: Deployed as systemd service" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**This PR has been fully tested in a production-like environment and is ready for merge!**" >> $GITHUB_STEP_SUMMARY
