@@ -151,10 +151,10 @@ jobs:
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
-  # Job 4: Deploy to staging/testnet (only on PRs to dev)
+  # Job 4: Deploy to staging/testnet using self-hosted runner
   deploy-staging:
     name: Deploy to Staging
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: containerize
     if: github.event_name == 'pull_request' && github.base_ref == 'dev'
     environment:
@@ -169,64 +169,84 @@ jobs:
       with:
         name: oracle-feeder-binary
     
-    - name: Setup SSH agent
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.STAGING_DEPLOY_KEY }}
-    
-    - name: Deploy to staging VPS
+    - name: Set up Rust environment
       run: |
+        echo "Setting up Rust environment..."
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly
+        source $HOME/.cargo/env
+        rustup component add rustfmt clippy
+    
+    - name: Build and deploy locally
+      env:
+        PARACHAIN_URL: ${{ secrets.STAGING_PARACHAIN_URL }}
+        ACCOUNT_SEED: ${{ secrets.STAGING_ACCOUNT_SEED }}
+      run: |
+        echo "🚀 Starting deployment to staging environment..."
+        
+        # Make binary executable
         chmod +x cyborg-oracle-feeder
         
-        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
-          set -e
-          
-          echo "🚀 Starting deployment to staging..."
-          
-          # Create staging directory if it doesn't exist
-          mkdir -p /home/cyborg/staging/cyborg-oracle-feeder
-          cd /home/cyborg/staging/cyborg-oracle-feeder
-          
-          # Stop existing service if running
-          echo "⏸️  Stopping oracle-feeder service..."
-          sudo systemctl stop oracle-feeder-staging.service || true
-          
-          # Wait a moment
-          sleep 2
+        # Run quick health check on binary
+        echo "🏥 Running binary health check..."
+        ./cyborg-oracle-feeder --version || (echo "Binary health check failed" && exit 1)
+        
+        # Stop existing service if running
+        echo "⏸️  Stopping oracle-feeder service..."
+        sudo systemctl stop oracle-feeder-staging.service || true
+        
+        # Wait a moment
+        sleep 2
+        
+        # Copy binary to staging location
+        echo "📦 Installing binary..."
+        sudo cp cyborg-oracle-feeder /usr/local/bin/cyborg-oracle-feeder-staging
+        sudo chmod +x /usr/local/bin/cyborg-oracle-feeder-staging
+        
+        # Create or update systemd service
+        echo "⚙️  Configuring systemd service..."
+        sudo tee /etc/systemd/system/oracle-feeder-staging.service > /dev/null << EOF
+        [Unit]
+        Description=Cyborg Oracle Feeder Staging
+        After=network.target
+        
+        [Service]
+        Type=simple
+        User=runner
+        WorkingDirectory=/home/runner
+        Environment="PARACHAIN_URL=$PARACHAIN_URL"
+        Environment="ACCOUNT_SEED=$ACCOUNT_SEED"
+        ExecStart=/usr/local/bin/cyborg-oracle-feeder-staging start --parachain-url \$PARACHAIN_URL --account-seed "\$ACCOUNT_SEED"
+        Restart=always
+        RestartSec=10
+        StandardOutput=journal
+        StandardError=journal
+        SyslogIdentifier=oracle-feeder-staging
+        
+        [Install]
+        WantedBy=multi-user.target
         EOF
         
-        # Copy binary to staging
-        scp -o StrictHostKeyChecking=no cyborg-oracle-feeder ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }}:/home/cyborg/staging/cyborg-oracle-feeder/
+        # Reload systemd and start service
+        echo "🔄 Reloading systemd..."
+        sudo systemctl daemon-reload
+        sudo systemctl enable oracle-feeder-staging.service
         
-        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
-          set -e
-          cd /home/cyborg/staging/cyborg-oracle-feeder
-          
-          # Make binary executable
-          chmod +x cyborg-oracle-feeder
-          
-          # Run quick health check on binary
-          echo "🏥 Running binary health check..."
-          ./cyborg-oracle-feeder --version || (echo "Binary health check failed" && exit 1)
-          
-          # Start service
-          echo "▶️  Starting oracle-feeder service..."
-          sudo systemctl start oracle-feeder-staging.service || sudo systemctl enable --now oracle-feeder-staging.service
-          
-          # Wait for service to start
-          sleep 5
-          
-          # Check service status
-          echo "✅ Checking service status..."
-          sudo systemctl is-active oracle-feeder-staging.service
-          
-          echo "✨ Deployment complete!"
-        EOF
+        echo "▶️  Starting oracle-feeder service..."
+        sudo systemctl start oracle-feeder-staging.service
+        
+        # Wait for service to start
+        sleep 5
+        
+        # Check service status
+        echo "✅ Checking service status..."
+        sudo systemctl is-active oracle-feeder-staging.service
+        
+        echo "✨ Deployment complete!"
 
   # Job 5: Integration tests on staging (only on PRs to dev)
   integration-test:
     name: Integration Tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: deploy-staging
     if: github.event_name == 'pull_request' && github.base_ref == 'dev'
     
@@ -235,57 +255,59 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Install Rust nightly
-      uses: actions-rust-lang/setup-rust-toolchain@v1
-      with:
-        toolchain: nightly
-    
-    - name: Setup SSH agent
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.STAGING_DEPLOY_KEY }}
+      run: |
+        source $HOME/.cargo/env
+        rustup update nightly
+        rustup default nightly
     
     - name: Test oracle feeder functionality
+      env:
+        PARACHAIN_URL: ${{ secrets.STAGING_PARACHAIN_URL }}
+        ACCOUNT_SEED: ${{ secrets.STAGING_ACCOUNT_SEED }}
       run: |
         echo "🔍 Testing oracle feeder operations..."
         
         # Test 1: Check if service is running
-        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} \
-          "sudo systemctl is-active oracle-feeder-staging.service"
+        sudo systemctl is-active oracle-feeder-staging.service
         
         # Test 2: Check logs for errors
-        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} \
-          "sudo journalctl -u oracle-feeder-staging.service -n 20 --no-pager | tail -10"
+        echo "=== Recent logs ==="
+        sudo journalctl -u oracle-feeder-staging.service -n 20 --no-pager | tail -20
+        
+        # Test 3: Check process is running
+        echo "=== Process info ==="
+        ps aux | grep cyborg-oracle-feeder-staging | grep -v grep
+        
+        # Test 4: Test basic functionality
+        echo "=== Testing basic functionality ==="
+        /usr/local/bin/cyborg-oracle-feeder-staging --version
         
         echo "✅ All functionality tests passed!"
 
   # Job 6: Post-deployment validation (only on PRs to dev)
   validate-deployment:
     name: Validate Deployment
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: integration-test
     if: github.event_name == 'pull_request' && github.base_ref == 'dev'
     
     steps:
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.9.0
-      with:
-        ssh-private-key: ${{ secrets.STAGING_DEPLOY_KEY }}
-    
     - name: Run deployment validation
       run: |
         echo "🔍 Validating deployment..."
         
         # Check service uptime and status
-        ssh -o StrictHostKeyChecking=no ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'EOF'
-          echo "=== Service status ==="
-          sudo systemctl status oracle-feeder-staging.service --no-pager --lines=5
-          
-          echo -e "\n=== Recent logs ==="
-          sudo journalctl -u oracle-feeder-staging.service -n 10 --no-pager
-          
-          echo -e "\n=== Process info ==="
-          ps aux | grep cyborg-oracle-feeder | grep -v grep || echo "No cyborg-oracle-feeder processes found"
-        EOF
+        echo "=== Service status ==="
+        sudo systemctl status oracle-feeder-staging.service --no-pager --lines=5
+        
+        echo -e "\n=== Recent logs ==="
+        sudo journalctl -u oracle-feeder-staging.service -n 10 --no-pager
+        
+        echo -e "\n=== Process info ==="
+        ps aux | grep cyborg-oracle-feeder-staging | grep -v grep
+        
+        echo -e "\n=== System resource usage ==="
+        top -bn1 | grep -i "cyborg\|oracle" || echo "No specific resource usage found"
         
         echo "✅ Deployment validation complete!"
     

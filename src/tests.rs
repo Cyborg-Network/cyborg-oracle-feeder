@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod test {
     use crate::{
         account::load_cyborg_test_key,
         builder::CyborgOracleFeederBuilder,
@@ -292,8 +292,6 @@ mod tests {
         let _ = feeder.run_check_miners().await;
         let _ = feeder.run_verify_proofs().await;
         let _ = feeder.verify_proof(1).await;
-
-        assert!(true, "All feeder methods executed without panic");
     }
 
     // Test transaction output debug
