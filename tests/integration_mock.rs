@@ -4,6 +4,7 @@ use crate::substrate_interface::api::runtime_types::cyborg_primitives::oracle::{
     OracleKey, OracleMinerFormat, OracleValue, ProcessStatus,
 };
 use async_trait::async_trait;
+use cyborg_oracle_feeder::*;
 use std::sync::Arc;
 use subxt::{OnlineClient, PolkadotConfig};
 use tokio::sync::Mutex;
