@@ -14,10 +14,8 @@ mod test {
     use async_trait::async_trait;
     use clap::Parser;
     use std::sync::Arc;
-    #[cfg(feature = "integration")]
     use subxt::{blocks::Block, OnlineClient, PolkadotConfig};
     use tempfile::tempdir;
-    #[cfg(feature = "integration")]
     use tokio::sync::Mutex;
 
     #[test]
@@ -369,25 +367,5 @@ mod test {
     }
   
 
-    // #[tokio::test]
-    // async fn test_client_set_only_once() {
-    //     use crate::config::CLIENT;
 
-    //     let client =
-    //         subxt::OnlineClient::<PolkadotConfig>::from_url("ws://localhost:9944").await;
-
-    //     let first = CLIENT.set(client.unwrap().into());
-    //     assert!(first.is_ok());
-
-    //     let second = CLIENT.set(
-    //         subxt::OnlineClient::<PolkadotConfig>::from_url("ws://localhost:9944")
-    //             .await
-    //             .unwrap().into(),
-    //     );
-
-    //     assert!(
-    //         second.is_err(),
-    //         "CLIENT may not be overwritten after first initialization"
-    //     );
-    // }
 }

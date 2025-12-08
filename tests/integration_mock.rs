@@ -1,9 +1,7 @@
-use cyborg_oracle_feeder::*; // Import your library
+use cyborg_oracle_feeder::*; 
 use async_trait::async_trait;
 use std::sync::Arc;
-#[cfg(feature = "integration")]
 use tokio::sync::Mutex;
-#[cfg(feature = "integration")]
 use subxt::{OnlineClient, PolkadotConfig};
 use crate::substrate_interface::api::runtime_types::cyborg_primitives::oracle::{
     OracleKey, OracleMinerFormat, OracleValue, ProcessStatus,

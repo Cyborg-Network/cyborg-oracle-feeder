@@ -9,12 +9,9 @@ use crate::{
 };
 use async_trait::async_trait;
 use ezkl::Commitments;
-#[cfg(feature = "integration")]
 use reqwest::Client;
-#[cfg(feature = "integration")]
 use subxt::{blocks::Block, OnlineClient, PolkadotConfig};
 use subxt_signer::sr25519::Keypair;
-#[cfg(feature = "integration")]
 use tokio::{
     sync::{Mutex, RwLock},
     time::{sleep, /*Instant, */ Duration},

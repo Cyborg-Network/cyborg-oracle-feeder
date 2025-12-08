@@ -1,7 +1,6 @@
 use std::sync::Arc;
 use std::{path::PathBuf, str::FromStr};
 use subxt_signer::{sr25519::Keypair as SR25519Keypair, SecretUri};
-#[cfg(feature = "integration")]
 use tokio::sync::{Mutex, RwLock};
 
 use crate::block_tracker::BlockTracker;
