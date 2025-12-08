@@ -365,4 +365,162 @@ mod test {
         let result = transaction.execute().await;
         assert!(result.is_err());
     }
+     use crate::substrate_interface::api::runtime_types::cyborg_primitives::oracle::{OracleValue, OracleKey, OracleMinerFormat};
+    use crate::substrate_interface::api::runtime_types::bounded_collections::bounded_vec::BoundedVec;
+   #[tokio::test]
+        async fn test_mock_feeder_full_run() {
+            use async_trait::async_trait;
+            use std::sync::Arc;
+
+            // ---------- Mock Shared State ----------
+            struct MockFeeder {
+                shared: Arc<SharedState>,
+            }
+
+            // ---------- Mock Implementations ----------
+            #[async_trait]
+            impl OracleFeeder for MockFeeder {
+                async fn run_check_miners(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+                    println!("run_check_miners() called");
+                    Ok(())
+                }
+
+                async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+                    println!("run_verify_proofs() called");
+                    Ok(())
+                }
+
+                async fn collect_miner_data(&self) -> Result<(), subxt::Error> {
+                    println!("collect_miner_data() called");
+
+                    let mut lock = self.shared.current_miners_data.lock().await;
+
+                
+                    let mock_id = BoundedVec(vec![1]); 
+
+                    *lock = Some(vec![
+                        (
+                            OracleKey::Miner(OracleMinerFormat {
+                                id: mock_id,
+                                miner_type: MinerType::Edge,
+                            }),
+                            OracleValue::MinerStatus(ProcessStatus {
+                                online: true,
+                                available: true,
+                            }),
+                        ),
+                    ]);
+
+                    Ok(())
+                }
+
+                async fn feed(&self) -> Result<(), Box<dyn std::error::Error>> {
+                    println!("feed() called");
+                    let lock = self.shared.current_miners_data.lock().await;
+                    assert!(lock.is_some(), "Miner data must be set before feed()");
+                    Ok(())
+                }
+
+                async fn verify_proof(
+                    &self,
+                    task_id: u64,
+                ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+                    println!("verify_proof() called with task_id={}", task_id);
+                    Ok(())
+                }
+
+                async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus {
+                    println!("get_miner_data() called for IP {}", miner_ip);
+                    ProcessStatus {
+                        online: true,
+                        available: true,
+                    }
+                }
+
+                async fn process_block(
+                    &self,
+                    _block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
+                ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+                    println!("process_block() called");
+                    Ok(())
+                }
+            }
+
+            // ---------- Setup ----------
+            let shared = Arc::new(SharedState {
+                current_miners_data: Mutex::new(None),
+            });
+
+            let feeder = MockFeeder { shared };
+
+            // ---------- Test Flow ----------
+            feeder.collect_miner_data().await.unwrap();
+            feeder.run_check_miners().await.unwrap();
+            feeder.run_verify_proofs().await.unwrap();
+            feeder.feed().await.unwrap();
+
+            // Verify miner data persisted
+            let guard = feeder.shared.current_miners_data.lock().await;
+            assert!(guard.is_some());
+            assert_eq!(guard.as_ref().unwrap().len(), 1);
+        }
+
+    #[tokio::test]
+    async fn test_transaction_queue_stops_processing_when_empty() {
+        crate::tx_queue::init_transaction_queue();
+        let queue = crate::tx_queue::TRANSACTION_QUEUE.get().unwrap();
+
+        let rx = queue
+            .enqueue(|| async { Ok(TxOutput::OracleFeedSuccess) })
+            .await
+            .unwrap();
+
+        let result = rx.await.unwrap();
+        assert!(result.is_ok());
+
+        // Wait a small period for processing loop to exit
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+
+        assert_eq!(
+            queue.processing.load(std::sync::atomic::Ordering::SeqCst),
+            false,
+            "Queue processing flag should be false after emptying"
+        );
+    }
+    #[tokio::test]
+    async fn test_builder_fails_without_client_init() {
+        let builder = crate::builder::CyborgOracleFeederBuilder::default()
+            .keypair("//Alice")
+            .unwrap();
+
+        let result = builder.build();
+
+        assert!(
+            result.await.is_err(),
+            "builder.build() must fail when CLIENT is not initialized"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_client_set_only_once() {
+        use crate::config::CLIENT;
+
+        let client =
+            subxt::OnlineClient::<PolkadotConfig>::from_url("ws://localhost:9944").await;
+
+        let first = CLIENT.set(client.unwrap().into());
+        assert!(first.is_ok());
+
+        let second = CLIENT.set(
+            subxt::OnlineClient::<PolkadotConfig>::from_url("ws://localhost:9944")
+                .await
+                .unwrap().into(),
+        );
+
+        assert!(
+            second.is_err(),
+            "CLIENT may not be overwritten after first initialization"
+        );
+    }
+
 }
