@@ -143,7 +143,6 @@ mod test {
         crate::tx_queue::init_transaction_queue();
         let queue = crate::tx_queue::TRANSACTION_QUEUE.get().unwrap();
 
-        // Enqueue multiple transactions
         let rx1 = queue
             .enqueue(|| async { Ok(TxOutput::OracleFeedSuccess) })
             .await
@@ -156,7 +155,7 @@ mod test {
             })
             .await
             .unwrap();
-
+        tokio::task::yield_now().await;
         let (result1, result2) = tokio::join!(rx1, rx2);
         assert!(matches!(result1.unwrap(), Ok(TxOutput::OracleFeedSuccess)));
         assert!(matches!(result2.unwrap(), Ok(TxOutput::OracleFeedSuccess)));

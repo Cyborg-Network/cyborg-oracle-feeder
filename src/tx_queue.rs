@@ -59,6 +59,12 @@ pub struct TransactionQueue {
 
 pub static TRANSACTION_QUEUE: OnceCell<TransactionQueue> = OnceCell::new();
 
+impl Default for TransactionQueue {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl TransactionQueue {
     pub fn new() -> Self {
         Self {
