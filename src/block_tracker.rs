@@ -2,7 +2,9 @@ use crate::error::{Error, Result};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::Arc;
+#[cfg(feature = "integration")]
 use subxt::{blocks::Block, OnlineClient, PolkadotConfig};
+#[cfg(feature = "integration")]
 use tokio::sync::Mutex;
 
 const LAST_BLOCK_FILE: &str = "last_block.txt";

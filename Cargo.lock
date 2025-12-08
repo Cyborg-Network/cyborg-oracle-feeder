@@ -137,6 +137,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "alloy-eip2930"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0069cf0642457f87a01a014f6dc29d5d893cd4fd8fddf0c3cdfad1bb3ebafc41"
+dependencies = [
+ "alloy-primitives 0.8.26",
+ "alloy-rlp",
+]
+
+[[package]]
+name = "alloy-eip7702"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ea59dc42102bc9a1905dc57901edc6dd48b9f38115df86c7d252acba70d71d04"
+dependencies = [
+ "alloy-primitives 0.8.26",
+ "alloy-rlp",
+ "k256",
+]
+
+[[package]]
 name = "alloy-eips"
 version = "0.1.0"
 source = "git+https://github.com/alloy-rs/alloy?rev=5fbf57bac99edef9d8475190109a7ea9fb7e5e83#5fbf57bac99edef9d8475190109a7ea9fb7e5e83"
@@ -254,6 +275,25 @@ dependencies = [
  "rand 0.8.5",
  "ruint",
  "serde",
+ "tiny-keccak",
+]
+
+[[package]]
+name = "alloy-primitives"
+version = "0.8.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "777d58b30eb9a4db0e5f59bc30e8c2caef877fee7dc8734cf242a51a60f22e05"
+dependencies = [
+ "alloy-rlp",
+ "bytes",
+ "cfg-if",
+ "const-hex",
+ "derive_more 2.0.1",
+ "hashbrown 0.15.2",
+ "itoa",
+ "k256",
+ "paste",
+ "ruint",
  "tiny-keccak",
 ]
 
@@ -980,6 +1020,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
+name = "aurora-engine-modexp"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "518bc5745a6264b5fd7b09dffb9667e400ee9e2bbe18555fac75e1fe9afa0df9"
+dependencies = [
+ "hex",
+ "num",
+]
+
+[[package]]
 name = "auto_impl"
 version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1048,17 +1098,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba62675e8242a4c4e806d12f11d136e626e6c8361d6b829310732241652a178a"
 dependencies = [
  "serde",
-]
-
-[[package]]
-name = "bigdecimal"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6773ddc0eafc0e509fb60e48dff7f450f8e674a0686ae8605e8d9901bd5eefa"
-dependencies = [
- "num-bigint",
- "num-integer",
- "num-traits",
 ]
 
 [[package]]
@@ -1864,6 +1903,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.90",
+ "unicode-xid",
 ]
 
 [[package]]
@@ -2199,7 +2239,7 @@ dependencies = [
 [[package]]
 name = "ezkl"
 version = "0.0.0"
-source = "git+https://github.com/zkonduit/ezkl.git?tag=v22.0.1#8015a17978615ed423ff8740b49add0c6be726c9"
+source = "git+https://github.com/zkonduit/ezkl.git?tag=v23.0.3#c919505506788b49a378420dcde044579972549b"
 dependencies = [
  "alloy",
  "bincode",
@@ -2216,7 +2256,7 @@ dependencies = [
  "gag",
  "getrandom 0.2.15",
  "halo2_gadgets",
- "halo2_proofs",
+ "halo2_proofs 0.3.0 (git+https://github.com/zkonduit/halo2?branch=ac%2Fconditional-compilation-icicle2)",
  "halo2_solidity_verifier",
  "halo2curves 0.7.0",
  "hex",
@@ -2226,10 +2266,8 @@ dependencies = [
  "lazy_static",
  "log",
  "maybe-rayon",
- "mimalloc",
  "num",
  "openssl",
- "pg_bigdecimal",
  "rand 0.8.5",
  "reqwest",
  "semver 1.0.23",
@@ -2241,7 +2279,6 @@ dependencies = [
  "tabled",
  "thiserror 1.0.69",
  "tokio",
- "tokio-postgres",
  "tosubcommand",
  "tract-onnx",
  "unzip-n",
@@ -2249,12 +2286,6 @@ dependencies = [
  "wasm-bindgen-console-logger",
  "wasm-bindgen-test",
 ]
-
-[[package]]
-name = "fallible-iterator"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4443176a9f2c162692bd3d352d745ef9413eec5782a80d8fd6f8a1ac692a07f7"
 
 [[package]]
 name = "fastrand"
@@ -2690,18 +2721,41 @@ dependencies = [
 [[package]]
 name = "halo2_gadgets"
 version = "0.2.0"
-source = "git+https://github.com/zkonduit/halo2#f441c920be45f8f05d2c06a173d82e8885a5ed4d"
+source = "git+https://github.com/zkonduit/halo2?branch=ac%2Fconditional-compilation-icicle2#01c88842679b4308e43ae5ed91c4183e861669bd"
 dependencies = [
  "arrayvec 0.7.6",
  "bitvec",
  "ff",
  "group",
- "halo2_proofs",
+ "halo2_proofs 0.3.0 (git+https://github.com/zkonduit/halo2?branch=ac%2Fconditional-compilation-icicle2)",
  "halo2curves 0.1.0",
  "lazy_static",
  "rand 0.8.5",
  "subtle",
  "uint 0.9.5",
+]
+
+[[package]]
+name = "halo2_proofs"
+version = "0.3.0"
+source = "git+https://github.com/zkonduit/halo2?branch=ac%2Fconditional-compilation-icicle2#01c88842679b4308e43ae5ed91c4183e861669bd"
+dependencies = [
+ "bincode",
+ "blake2b_simd",
+ "env_logger",
+ "ff",
+ "group",
+ "halo2curves 0.7.0",
+ "instant",
+ "lazy_static",
+ "log",
+ "maybe-rayon",
+ "rand_chacha 0.3.1",
+ "rand_core 0.6.4",
+ "rustc-hash",
+ "serde",
+ "sha3 0.9.1",
+ "tracing",
 ]
 
 [[package]]
@@ -2730,13 +2784,15 @@ dependencies = [
 [[package]]
 name = "halo2_solidity_verifier"
 version = "0.1.0"
-source = "git+https://github.com/alexander-camuto/halo2-solidity-verifier#3d237d566ca6714c9ee6fcf3f2dcefffa79f914c"
+source = "git+https://github.com/zkonduit/ezkl-verifier?branch=main#a518a917f076adb851a1ae39e09527f8dbde5000"
 dependencies = [
  "askama",
  "blake2b_simd",
- "halo2_proofs",
+ "halo2_proofs 0.3.0 (git+https://github.com/zkonduit/halo2)",
  "hex",
  "itertools 0.11.0",
+ "regex",
+ "revm 14.0.3",
  "ruint",
  "sha3 0.10.8",
 ]
@@ -2851,7 +2907,7 @@ name = "halo2wrong"
 version = "0.1.0"
 source = "git+https://github.com/zkonduit/halo2wrong?branch=ac%2Fchunked-mv-lookup#07005dd59a76d64895f27f114141c1798aec8c9f"
 dependencies = [
- "halo2_proofs",
+ "halo2_proofs 0.3.0 (git+https://github.com/zkonduit/halo2)",
  "num-bigint",
  "num-integer",
  "num-traits",
@@ -3668,16 +3724,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8355be11b20d696c8f18f6cc018c4e372165b1fa8126cef092399c9951984ffa"
 
 [[package]]
-name = "libmimalloc-sys"
-version = "0.1.42"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ec9d6fac27761dabcd4ee73571cdb06b7022dc99089acbe5435691edffaac0f4"
-dependencies = [
- "cc",
- "libc",
-]
-
-[[package]]
 name = "libredox"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3913,15 +3959,6 @@ dependencies = [
  "keccak",
  "rand_core 0.6.4",
  "zeroize",
-]
-
-[[package]]
-name = "mimalloc"
-version = "0.1.46"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "995942f432bbb4822a7e9c3faa87a695185b0d09273ba85f097b54f4e458f2af"
-dependencies = [
- "libmimalloc-sys",
 ]
 
 [[package]]
@@ -4415,19 +4452,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pg_bigdecimal"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9855a94c74528af62c0ea236577af5e601263c1c404a6ac939b07c97c8e0216"
-dependencies = [
- "bigdecimal",
- "byteorder",
- "bytes",
- "num",
- "postgres",
-]
-
-[[package]]
 name = "phf"
 version = "0.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4585,49 +4609,6 @@ source = "git+https://github.com/privacy-scaling-explorations/poseidon.git?tag=v
 dependencies = [
  "halo2curves 0.3.2",
  "subtle",
-]
-
-[[package]]
-name = "postgres"
-version = "0.19.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "363e6dfbdd780d3aa3597b6eb430db76bb315fa9bad7fae595bb8def808b8470"
-dependencies = [
- "bytes",
- "fallible-iterator",
- "futures-util",
- "log",
- "tokio",
- "tokio-postgres",
-]
-
-[[package]]
-name = "postgres-protocol"
-version = "0.6.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76ff0abab4a9b844b93ef7b81f1efc0a366062aaef2cd702c76256b5dc075c54"
-dependencies = [
- "base64 0.22.1",
- "byteorder",
- "bytes",
- "fallible-iterator",
- "hmac 0.12.1",
- "md-5",
- "memchr",
- "rand 0.9.1",
- "sha2 0.10.9",
- "stringprep",
-]
-
-[[package]]
-name = "postgres-types"
-version = "0.2.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "613283563cd90e1dfc3518d548caee47e0e725455ed619881f5cf21f36de4b48"
-dependencies = [
- "bytes",
- "fallible-iterator",
- "postgres-protocol",
 ]
 
 [[package]]
@@ -5097,8 +5078,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68f4ca8ae0345104523b4af1a8a7ea97cfa1865cdb7a7c25d23c1a18d9b48598"
 dependencies = [
  "auto_impl",
- "revm-interpreter",
- "revm-precompile",
+ "revm-interpreter 1.3.0",
+ "revm-precompile 2.2.0",
+]
+
+[[package]]
+name = "revm"
+version = "14.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "641702b12847f9ed418d552f4fcabe536d867a2c980e96b6e7e25d7b992f929f"
+dependencies = [
+ "auto_impl",
+ "cfg-if",
+ "dyn-clone",
+ "revm-interpreter 10.0.3",
+ "revm-precompile 11.0.3",
 ]
 
 [[package]]
@@ -5107,7 +5101,16 @@ version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f959cafdf64a7f89b014fa73dc2325001cf654b3d9400260b212d19a2ebe3da0"
 dependencies = [
- "revm-primitives",
+ "revm-primitives 1.3.0",
+]
+
+[[package]]
+name = "revm-interpreter"
+version = "10.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e5e14002afae20b5bf1566f22316122f42f57517000e559c55b25bf7a49cba2"
+dependencies = [
+ "revm-primitives 10.0.0",
 ]
 
 [[package]]
@@ -5119,7 +5122,23 @@ dependencies = [
  "k256",
  "num",
  "once_cell",
- "revm-primitives",
+ "revm-primitives 1.3.0",
+ "ripemd",
+ "sha2 0.10.9",
+ "substrate-bn",
+]
+
+[[package]]
+name = "revm-precompile"
+version = "11.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3198c06247e8d4ad0d1312591edf049b0de4ddffa9fecb625c318fd67db8639b"
+dependencies = [
+ "aurora-engine-modexp",
+ "cfg-if",
+ "k256",
+ "once_cell",
+ "revm-primitives 10.0.0",
  "ripemd",
  "sha2 0.10.9",
  "substrate-bn",
@@ -5138,6 +5157,24 @@ dependencies = [
  "bitvec",
  "enumn",
  "hashbrown 0.14.5",
+ "hex",
+]
+
+[[package]]
+name = "revm-primitives"
+version = "10.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6f1525851a03aff9a9d6a1d018b414d76252d6802ab54695b27093ecd7e7a101"
+dependencies = [
+ "alloy-eip2930",
+ "alloy-eip7702",
+ "alloy-primitives 0.8.26",
+ "auto_impl",
+ "bitflags",
+ "bitvec",
+ "cfg-if",
+ "dyn-clone",
+ "enumn",
  "hex",
 ]
 
@@ -6076,7 +6113,7 @@ version = "0.1.1"
 source = "git+https://github.com/zkonduit/snark-verifier?branch=ac%2Fchunked-mv-lookup#508d96b20874d575bb489cb5f92f8bb116e9d44a"
 dependencies = [
  "ecc",
- "halo2_proofs",
+ "halo2_proofs 0.3.0 (git+https://github.com/zkonduit/halo2)",
  "halo2curves 0.6.1",
  "hex",
  "itertools 0.10.5",
@@ -6086,7 +6123,7 @@ dependencies = [
  "num-traits",
  "poseidon",
  "rand 0.8.5",
- "revm",
+ "revm 3.5.0",
  "serde",
  "sha3 0.10.8",
 ]
@@ -6209,17 +6246,6 @@ dependencies = [
  "parking_lot",
  "phf_shared",
  "precomputed-hash",
-]
-
-[[package]]
-name = "stringprep"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7b4df3d392d81bd458a8a621b8bffbd2302a12ffe288a9d931670948749463b1"
-dependencies = [
- "unicode-bidi",
- "unicode-normalization",
- "unicode-properties",
 ]
 
 [[package]]
@@ -6752,32 +6778,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-postgres"
-version = "0.7.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c95d533c83082bb6490e0189acaa0bbeef9084e60471b696ca6988cd0541fb0"
-dependencies = [
- "async-trait",
- "byteorder",
- "bytes",
- "fallible-iterator",
- "futures-channel",
- "futures-util",
- "log",
- "parking_lot",
- "percent-encoding",
- "phf",
- "pin-project-lite",
- "postgres-protocol",
- "postgres-types",
- "rand 0.9.1",
- "socket2",
- "tokio",
- "tokio-util",
- "whoami",
-]
-
-[[package]]
 name = "tokio-rustls"
 version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7125,12 +7125,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "75b844d17643ee918803943289730bec8aac480150456169e647ed0b576ba539"
 
 [[package]]
-name = "unicode-bidi"
-version = "0.3.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c1cb5db39152898a79168971543b1cb5020dff7fe43c8dc468b0885f5e29df5"
-
-[[package]]
 name = "unicode-ident"
 version = "1.0.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7144,12 +7138,6 @@ checksum = "5c5713f0fc4b5db668a2ac63cdb7bb4469d8c9fed047b1d0292cc7b0ce2ba921"
 dependencies = [
  "tinyvec",
 ]
-
-[[package]]
-name = "unicode-properties"
-version = "0.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e70f2a8b45122e719eb623c01822704c4e0907e7e426a05927e1a1cfff5b75d0"
 
 [[package]]
 name = "unicode-segmentation"
@@ -7322,12 +7310,6 @@ checksum = "9683f9a5a998d873c0d21fcbe3c083009670149a8fab228644b8bd36b2c48cb3"
 dependencies = [
  "wit-bindgen-rt",
 ]
-
-[[package]]
-name = "wasite"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8dad83b4f25e74f184f64c43b150b91efe7647395b42289f38e50566d82855b"
 
 [[package]]
 name = "wasm-bindgen"
@@ -7524,17 +7506,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5d642ff16b7e79272ae451b7322067cdc17cadf68c23264be9d94a32319efe7e"
 dependencies = [
  "rustls-pki-types",
-]
-
-[[package]]
-name = "whoami"
-version = "1.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6994d13118ab492c3c80c1f81928718159254c53c472bf9ce36f8dae4add02a7"
-dependencies = [
- "redox_syscall",
- "wasite",
- "web-sys",
 ]
 
 [[package]]
