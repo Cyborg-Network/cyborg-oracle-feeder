@@ -1,14 +1,12 @@
-use cyborg_oracle_feeder::*; 
-use async_trait::async_trait;
-use std::sync::Arc;
-use tokio::sync::Mutex;
-use subxt::{OnlineClient, PolkadotConfig};
+use crate::substrate_interface::api::runtime_types::bounded_collections::bounded_vec::BoundedVec;
+use crate::substrate_interface::api::runtime_types::cyborg_primitives::miner::MinerType;
 use crate::substrate_interface::api::runtime_types::cyborg_primitives::oracle::{
     OracleKey, OracleMinerFormat, OracleValue, ProcessStatus,
 };
-use crate::substrate_interface::api::runtime_types::cyborg_primitives::miner::MinerType;
-use crate::substrate_interface::api::runtime_types::bounded_collections::bounded_vec::BoundedVec;
-
+use async_trait::async_trait;
+use std::sync::Arc;
+use subxt::{OnlineClient, PolkadotConfig};
+use tokio::sync::Mutex;
 #[tokio::test]
 async fn integration_test_mock_feeder_full_run() {
     // ---------- Mock Shared State ----------
