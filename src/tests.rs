@@ -11,7 +11,6 @@ mod tests {
     };
     use async_trait::async_trait;
     use std::sync::Arc;
-    use subxt::{blocks::Block, OnlineClient, PolkadotConfig};
     use tempfile::tempdir;
     use tokio::sync::Mutex;
 
@@ -23,17 +22,6 @@ mod tests {
     #[async_trait]
     impl OracleFeeder for MockOracleFeeder {
         async fn run_check_miners(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            Ok(())
-        }
-
-        async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            Ok(())
-        }
-
-        async fn verify_proof(
-            &self,
-            _task_id: u64,
-        ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             Ok(())
         }
 
@@ -52,13 +40,6 @@ mod tests {
                 online: true,
                 available: true,
             }
-        }
-
-        async fn process_block(
-            &self,
-            _block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
-        ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            Ok(())
         }
     }
 
