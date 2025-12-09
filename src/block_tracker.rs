@@ -7,12 +7,14 @@ use tokio::sync::Mutex;
 
 const LAST_BLOCK_FILE: &str = "last_block.txt";
 
+#[allow(unused)]
 pub struct BlockTracker {
     client: Arc<OnlineClient<PolkadotConfig>>,
     data_dir: PathBuf,
     last_processed_block: Mutex<Option<u32>>,
 }
 
+#[allow(unused)]
 impl BlockTracker {
     pub fn new(client: Arc<OnlineClient<PolkadotConfig>>, data_dir: PathBuf) -> Result<Self> {
         // Create data directory if it doesn't exist

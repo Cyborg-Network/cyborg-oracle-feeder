@@ -1,9 +1,9 @@
-name: Deploy to VPS on v0.1
+name: Deploy to VPS push to dev
 
 on:
   push:
     branches:
-      - v0.1
+      - dev
 
 jobs:
   deploy:
