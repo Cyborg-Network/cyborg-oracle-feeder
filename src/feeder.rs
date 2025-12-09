@@ -1,9 +1,7 @@
 use crate::{
     block_tracker::BlockTracker,
     error::Error,
-    substrate_interface::api::runtime_types::cyborg_primitives::{
-        oracle::{OracleKey, OracleValue},
-    },
+    substrate_interface::api::runtime_types::cyborg_primitives::oracle::{OracleKey, OracleValue},
     tx_queue::{TxOutput, TRANSACTION_QUEUE},
 };
 use async_trait::async_trait;
@@ -17,15 +15,13 @@ use tokio::{
 //use rand::{Rng, SeedableRng};
 use crate::account::load_cyborg_test_key;
 use crate::config::CLIENT;
-use crate::substrate_interface::{
-    api::{
-        self as SubstrateApi,
-        runtime_types::{
-            bounded_collections::bounded_vec::BoundedVec,
-            cyborg_primitives::{
-                miner::MinerType,
-                oracle::{OracleMinerFormat, ProcessStatus},
-            },
+use crate::substrate_interface::api::{
+    self as SubstrateApi,
+    runtime_types::{
+        bounded_collections::bounded_vec::BoundedVec,
+        cyborg_primitives::{
+            miner::MinerType,
+            oracle::{OracleMinerFormat, ProcessStatus},
         },
     },
 };
