@@ -239,7 +239,7 @@ impl OracleFeeder for CyborgOracleFeeder {
 
         let client = Client::new();
         let response = client
-            .get(format!("{}/check-health", miner_ip))
+            .get(format!("{}:8080/check-health", miner_ip))
             .timeout(Duration::from_secs(5))
             .send()
             .await;
