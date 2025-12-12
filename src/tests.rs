@@ -10,10 +10,10 @@ mod tests {
         tx_queue::{Transaction, TxOutput},
     };
     use async_trait::async_trait;
+    use reqwest::Client;
     use std::sync::Arc;
     use tempfile::tempdir;
     use tokio::sync::Mutex;
-    use reqwest::Client;
 
     // Mock OracleFeeder for testing
     struct MockOracleFeeder {
@@ -136,7 +136,9 @@ mod tests {
         assert!(data.is_some());
 
         // Test get_miner_data
-        let status = feeder.get_miner_data(&"127.0.0.1:8080".to_string(), &client).await;
+        let status = feeder
+            .get_miner_data(&"127.0.0.1:8080".to_string(), &client)
+            .await;
         assert!(status.online);
         assert!(status.available);
 

@@ -83,7 +83,10 @@ impl Clone for OracleValue {
 
 #[derive(Deserialize)]
 struct MinerHealthResponse {
-    #[serde(rename = "isActive", deserialize_with = "deserialize_bool_from_anything")]
+    #[serde(
+        rename = "isActive",
+        deserialize_with = "deserialize_bool_from_anything"
+    )]
     is_active: bool,
 }
 
@@ -201,7 +204,7 @@ impl OracleFeeder for CyborgOracleFeeder {
             new_miner_data.push((
                 OracleKey::Miner(OracleMinerFormat {
                     id: miner.value.id,
-                    miner_type: MinerType::Edge,
+                    miner_type: MinerType::Cloud,
                 }),
                 OracleValue::MinerStatus(process_status),
             ));
@@ -246,7 +249,7 @@ impl OracleFeeder for CyborgOracleFeeder {
         } else {
             format!("http://{}:8080/check-health", miner_ip)
         };
-    
+
         println!("Attempting to connect to: {}", url);
 
         let response = reqwest_client
