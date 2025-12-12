@@ -10,6 +10,7 @@ mod tests {
         tx_queue::{Transaction, TxOutput},
     };
     use async_trait::async_trait;
+    use reqwest::Client;
     use std::sync::Arc;
     use tempfile::tempdir;
     use tokio::sync::Mutex;
@@ -35,7 +36,7 @@ mod tests {
             Ok(())
         }
 
-        async fn get_miner_data(&self, _miner_ip: &str) -> ProcessStatus {
+        async fn get_miner_data(&self, _miner_ip: &str, _reqwest_client: &Client) -> ProcessStatus {
             ProcessStatus {
                 online: true,
                 available: true,
@@ -127,13 +128,17 @@ mod tests {
             }),
         };
 
+        let client = Client::new();
+
         // Test collect_miner_data
         feeder.collect_miner_data().await.unwrap();
         let data = feeder.shared_state.current_miners_data.lock().await;
         assert!(data.is_some());
 
         // Test get_miner_data
-        let status = feeder.get_miner_data(&"127.0.0.1:8080".to_string()).await;
+        let status = feeder
+            .get_miner_data(&"127.0.0.1:8080".to_string(), &client)
+            .await;
         assert!(status.online);
         assert!(status.available);
 
