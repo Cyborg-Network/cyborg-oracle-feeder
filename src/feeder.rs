@@ -83,7 +83,7 @@ impl Clone for OracleValue {
 
 #[derive(Deserialize)]
 struct MinerHealthResponse {
-    #[serde(deserialize_with = "deserialize_bool_from_anything")]
+    #[serde(rename = "isActive", deserialize_with = "deserialize_bool_from_anything")]
     is_active: bool,
 }
 
@@ -111,7 +111,7 @@ pub trait OracleFeeder {
     ///
     /// # Returns
     /// An `Option<String>` containing relevant information derived from the event, or `None` if no information is extracted.
-    async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus;
+    async fn get_miner_data(&self, miner_ip: &str, reqwest_client: &Client) -> ProcessStatus;
 }
 
 /// Implementation of the `OracleFeeder` trait for `CyborgOracleFeeder`.
@@ -141,7 +141,10 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             sleep(random_delay).await;
 
-            self.collect_miner_data().await?;
+            if let Err(e) = self.collect_miner_data().await {
+                println!("Failed to collect miner data: {}. Retrying next cycle.", e);
+                continue;
+            }
 
             self.feed().await.unwrap_or_else(|e| {
                 println!("Failed to feed the oracle due to error: {e}. retrying in next cycle.")
@@ -169,16 +172,17 @@ impl OracleFeeder for CyborgOracleFeeder {
 
         let edge_miners_address = SubstrateApi::storage().edge_connect().edge_miners_iter();
 
-        let client = CLIENT.get().ok_or("Failed to get client")?;
+        let parachain_client = CLIENT.get().ok_or("Failed to get client")?;
+        let reqwest_client = Client::new();
 
-        let mut cloud_miners_query = client
+        let mut cloud_miners_query = parachain_client
             .storage()
             .at_latest()
             .await?
             .iter(cloud_miners_address)
             .await?;
 
-        let mut edge_miners_query = client
+        let mut edge_miners_query = parachain_client
             .storage()
             .at_latest()
             .await?
@@ -192,7 +196,7 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             println!("Miner IP: {}", miner_ip);
 
-            let process_status = self.get_miner_data(&miner_ip).await;
+            let process_status = self.get_miner_data(&miner_ip, &reqwest_client).await;
 
             new_miner_data.push((
                 OracleKey::Miner(OracleMinerFormat {
@@ -208,7 +212,7 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             println!("Miner IP: {}", miner_ip);
 
-            let process_status = self.get_miner_data(&miner_ip).await;
+            let process_status = self.get_miner_data(&miner_ip, &reqwest_client).await;
 
             new_miner_data.push((
                 OracleKey::Miner(OracleMinerFormat {
@@ -226,7 +230,7 @@ impl OracleFeeder for CyborgOracleFeeder {
         Ok(())
     }
 
-    async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus {
+    async fn get_miner_data(&self, miner_ip: &str, reqwest_client: &Client) -> ProcessStatus {
         async fn process_response(
             response: reqwest::Response,
         ) -> Result<MinerHealthResponse, Box<dyn std::error::Error>> {
@@ -237,8 +241,15 @@ impl OracleFeeder for CyborgOracleFeeder {
             Ok(miner_health_item)
         }
 
-        let client = Client::new();
-        let response = client
+        let url = if miner_ip.starts_with("http://") || miner_ip.starts_with("https://") {
+            format!("{}:8080/check-health", miner_ip)
+        } else {
+            format!("http://{}:8080/check-health", miner_ip)
+        };
+    
+        println!("Attempting to connect to: {}", url);
+
+        let response = reqwest_client
             .get(format!("{}:8080/check-health", miner_ip))
             .timeout(Duration::from_secs(5))
             .send()
