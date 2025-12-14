@@ -213,8 +213,6 @@ impl OracleFeeder for CyborgOracleFeeder {
         while let Some(Ok(miner)) = edge_miners_query.next().await {
             let miner_ip = String::from_utf8_lossy(&miner.value.api.domain.0).to_string();
 
-            println!("Miner IP: {}", miner_ip);
-
             let process_status = self.get_miner_data(&miner_ip, &reqwest_client).await;
 
             new_miner_data.push((
@@ -238,47 +236,62 @@ impl OracleFeeder for CyborgOracleFeeder {
             response: reqwest::Response,
         ) -> Result<MinerHealthResponse, Box<dyn std::error::Error>> {
             let response_text = response.text().await?;
-            println!("Response text: {}", response_text);
             let miner_health_item = serde_json::from_str::<MinerHealthResponse>(&response_text)?;
-
             Ok(miner_health_item)
         }
 
-        let url = if miner_ip.starts_with("http://") || miner_ip.starts_with("https://") {
+        let url_string = if miner_ip.starts_with("http://") || miner_ip.starts_with("https://") {
             format!("{}:8080/check-health", miner_ip)
         } else {
             format!("http://{}:8080/check-health", miner_ip)
         };
 
-        println!("Attempting to connect to: {}", url);
+        let url = match reqwest::Url::parse(&url_string) {
+            Ok(u) => u,
+            Err(e) => {
+                println!("Failed to parse URL: {}", e);
+                return ProcessStatus {
+                    online: false,
+                    available: false,
+                };
+            }
+        };
 
-        let response = reqwest_client
-            .get(format!("{}:8080/check-health", miner_ip))
-            .timeout(Duration::from_secs(5))
-            .send()
-            .await;
+        let request = match reqwest_client.get(url).build() {
+            Ok(req) => req,
+            Err(e) => {
+                println!("Failed to build request: {}", e);
+                println!("Error is builder: {}", e.is_builder());
+                return ProcessStatus {
+                    online: false,
+                    available: false,
+                };
+            }
+        };
+
+        let response = reqwest_client.execute(request).await;
 
         match response {
             Ok(response) => {
-                println!("Response: {:?}", response);
                 if let Ok(miner_health_item) = process_response(response).await {
-                    println!(
-                        "Miner with ip {} is online: {}",
-                        miner_ip, miner_health_item.is_active
-                    );
                     if miner_health_item.is_active {
+                        println!("Miner with ip {} is online.", miner_ip);
                         ProcessStatus {
                             online: true,
                             available: true,
                         }
                     } else {
+                        println!("Miner with ip {} is offline.", miner_ip);
                         ProcessStatus {
                             online: false,
                             available: false,
                         }
                     }
                 } else {
-                    println!("Miner with IP {} returned an error", miner_ip);
+                    println!(
+                        "Miner with IP {} returned an error while processing response",
+                        miner_ip
+                    );
                     ProcessStatus {
                         online: false,
                         available: false,
@@ -286,7 +299,16 @@ impl OracleFeeder for CyborgOracleFeeder {
                 }
             }
             Err(error) => {
-                println!("Miner with ip {} is not online. Error: {}", miner_ip, error);
+                println!("Miner with ip {} is not online.", miner_ip);
+                println!("Error type: {}", error);
+                println!("Is builder error: {}", error.is_builder());
+                println!("Is request error: {}", error.is_request());
+                println!("Is connect error: {}", error.is_connect());
+                println!("Is timeout error: {}", error.is_timeout());
+                if let Some(url) = error.url() {
+                    println!("Error URL: {}", url);
+                }
+
                 ProcessStatus {
                     online: false,
                     available: false,
