@@ -5,8 +5,8 @@ use crate::substrate_interface::api::runtime_types::cyborg_primitives::oracle::{
 };
 use async_trait::async_trait;
 use cyborg_oracle_feeder::*;
+use reqwest::Client;
 use std::sync::Arc;
-use subxt::{OnlineClient, PolkadotConfig};
 use tokio::sync::Mutex;
 #[tokio::test]
 async fn integration_test_mock_feeder_full_run() {
@@ -20,11 +20,6 @@ async fn integration_test_mock_feeder_full_run() {
     impl OracleFeeder for MockFeeder {
         async fn run_check_miners(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             println!("run_check_miners() called");
-            Ok(())
-        }
-
-        async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            println!("run_verify_proofs() called");
             Ok(())
         }
 
@@ -56,28 +51,12 @@ async fn integration_test_mock_feeder_full_run() {
             Ok(())
         }
 
-        async fn verify_proof(
-            &self,
-            task_id: u64,
-        ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            println!("verify_proof() called with task_id={}", task_id);
-            Ok(())
-        }
-
-        async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus {
+        async fn get_miner_data(&self, miner_ip: &str, _reqwest_client: &Client) -> ProcessStatus {
             println!("get_miner_data() called for IP {}", miner_ip);
             ProcessStatus {
                 online: true,
                 available: true,
             }
-        }
-
-        async fn process_block(
-            &self,
-            _block: &subxt::blocks::Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
-        ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            println!("process_block() called");
-            Ok(())
         }
     }
 
@@ -91,7 +70,6 @@ async fn integration_test_mock_feeder_full_run() {
     // ---------- Test Flow ----------
     feeder.collect_miner_data().await.unwrap();
     feeder.run_check_miners().await.unwrap();
-    feeder.run_verify_proofs().await.unwrap();
     feeder.feed().await.unwrap();
 
     // Verify miner data persisted

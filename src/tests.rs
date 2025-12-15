@@ -63,19 +63,6 @@ mod test {
                 Ok(())
             }
 
-            async fn run_verify_proofs(
-                &self,
-            ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-                Ok(())
-            }
-
-            async fn verify_proof(
-                &self,
-                _task_id: u64,
-            ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-                Ok(())
-            }
-
             async fn collect_miner_data(&self) -> Result<(), subxt::Error> {
                 Ok(())
             }
@@ -84,23 +71,22 @@ mod test {
                 Ok(())
             }
 
-            async fn get_miner_data(&self, _miner_ip: &str) -> ProcessStatus {
+            async fn get_miner_data(
+                &self,
+                _miner_ip: &str,
+                _reqwest_client: &Client,
+            ) -> ProcessStatus {
                 ProcessStatus {
                     online: true,
                     available: true,
                 }
             }
-
-            async fn process_block(
-                &self,
-                _block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
-            ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-                Ok(())
-            }
         }
 
         let feeder = TestFeeder;
-        let status = feeder.get_miner_data("127.0.0.1:8080").await;
+        let status = feeder
+            .get_miner_data("127.0.0.1:8080", &Client::new())
+            .await;
         assert!(status.online);
         assert!(status.available);
     }
@@ -158,7 +144,8 @@ mod test {
             })
             .await
             .unwrap();
-        tokio::task::yield_now().await;
+
+        // Wait for both transactions to complete
         let (result1, result2) = tokio::join!(rx1, rx2);
         assert!(matches!(result1.unwrap(), Ok(TxOutput::OracleFeedSuccess)));
         assert!(matches!(result2.unwrap(), Ok(TxOutput::OracleFeedSuccess)));
@@ -216,19 +203,6 @@ mod test {
             Ok(())
         }
 
-        async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            // Simulate successful operation
-            Ok(())
-        }
-
-        async fn verify_proof(
-            &self,
-            _task_id: u64,
-        ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            // Simulate proof verification
-            Ok(())
-        }
-
         async fn collect_miner_data(&self) -> Result<(), subxt::Error> {
             // Simulate collecting miner data
             let mut miner_data_guard = self.shared_state.current_miners_data.lock().await;
@@ -241,7 +215,7 @@ mod test {
             Ok(())
         }
 
-        async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus {
+        async fn get_miner_data(&self, miner_ip: &str, _reqwest_client: &Client) -> ProcessStatus {
             // Return mock status based on IP
             if miner_ip.contains("127.0.0.1") {
                 ProcessStatus {
@@ -254,14 +228,6 @@ mod test {
                     available: false,
                 }
             }
-        }
-
-        async fn process_block(
-            &self,
-            _block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
-        ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-            // Simulate block processing
-            Ok(())
         }
     }
 
@@ -281,7 +247,7 @@ mod test {
         assert!(data.is_some());
 
         // Test get_miner_data
-        let status = feeder.get_miner_data("127.0.0.1:8080").await;
+        let status = feeder.get_miner_data("127.0.0.1:8080", &client).await;
         assert!(status.online);
         assert!(status.available);
 
@@ -290,8 +256,6 @@ mod test {
 
         // Test async operations
         let _ = feeder.run_check_miners().await;
-        let _ = feeder.run_verify_proofs().await;
-        let _ = feeder.verify_proof(1).await;
     }
 
     // Test transaction output debug

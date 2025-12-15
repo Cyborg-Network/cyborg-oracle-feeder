@@ -135,7 +135,7 @@ impl TransactionQueue {
                             }
                         }
                     },
-                    None => {
+                    _none => {
                         processing_flag.store(false, Ordering::SeqCst);
                         log::debug!("Oracle feeder transaction queue is empty");
                         break;
