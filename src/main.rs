@@ -65,24 +65,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
 
             let feeder = Arc::new(feeder);
 
-            // Clone for parallel tasks
-            let feeder_for_proofs = Arc::clone(&feeder);
             let feeder_for_miners = Arc::clone(&feeder);
-
-            // Spawn verification in blocking thread
-            let proofs = tokio::task::spawn_blocking(move || {
-                let rt = tokio::runtime::Handle::current();
-                rt.block_on(feeder_for_proofs.run_verify_proofs())
-            });
 
             // Spawn async miner check loop
             let miners = tokio::spawn(async move { feeder_for_miners.run_check_miners().await });
 
-            // Wait for both tasks
-            let (proofs_result, miners_result) = tokio::join!(proofs, miners);
-
-            miners_result??;
-            proofs_result??;
+            miners.await??;
         }
         _ => {
             println!("No command provided. Exiting.");

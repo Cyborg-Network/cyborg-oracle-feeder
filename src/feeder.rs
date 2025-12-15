@@ -1,16 +1,11 @@
 use crate::{
     block_tracker::BlockTracker,
     error::Error,
-    substrate_interface::api::runtime_types::cyborg_primitives::{
-        oracle::{OracleKey, OracleValue},
-        task::TaskKind,
-    },
+    substrate_interface::api::runtime_types::cyborg_primitives::oracle::{OracleKey, OracleValue},
     tx_queue::{TxOutput, TRANSACTION_QUEUE},
 };
 use async_trait::async_trait;
-use ezkl::Commitments;
 use reqwest::Client;
-use subxt::{blocks::Block, OnlineClient, PolkadotConfig};
 use subxt_signer::sr25519::Keypair;
 use tokio::{
     sync::{Mutex, RwLock},
@@ -20,28 +15,19 @@ use tokio::{
 //use rand::{Rng, SeedableRng};
 use crate::account::load_cyborg_test_key;
 use crate::config::CLIENT;
-use crate::substrate_interface::{
-    self,
-    api::{
-        self as SubstrateApi,
-        runtime_types::{
-            bounded_collections::bounded_vec::BoundedVec,
-            cyborg_primitives::{
-                miner::MinerType,
-                oracle::{OracleMinerFormat, ProcessStatus},
-            },
+use crate::substrate_interface::api::{
+    self as SubstrateApi,
+    runtime_types::{
+        bounded_collections::bounded_vec::BoundedVec,
+        cyborg_primitives::{
+            miner::MinerType,
+            oracle::{OracleMinerFormat, ProcessStatus},
         },
     },
 };
-use ezkl::{
-    commands::Commands::{GetSrs, Verify},
-    execute::run,
-};
 use serde::Deserialize;
 use serde_aux::prelude::deserialize_bool_from_anything;
-use std::{fs::write, sync::Arc};
-use tempfile::tempdir;
-
+use std::sync::Arc;
 pub struct SharedState {
     pub current_miners_data: Mutex<Option<Vec<(OracleKey, OracleValue)>>>,
 }
@@ -97,7 +83,10 @@ impl Clone for OracleValue {
 
 #[derive(Deserialize)]
 struct MinerHealthResponse {
-    #[serde(deserialize_with = "deserialize_bool_from_anything")]
+    #[serde(
+        rename = "isActive",
+        deserialize_with = "deserialize_bool_from_anything"
+    )]
     is_active: bool,
 }
 
@@ -108,15 +97,6 @@ struct MinerHealthResponse {
 pub trait OracleFeeder {
     /// Runs the miner checking side of the oracle feeder, then waits some time before running it again.
     async fn run_check_miners(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
-
-    /// Runs the proof verification side of the oracle feeder.
-    async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
-
-    /// Verifies a single proof
-    async fn verify_proof(
-        &self,
-        task_id: u64,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
 
     /// Sets the miners that are currently registered onchain to self.
     ///
@@ -134,55 +114,12 @@ pub trait OracleFeeder {
     ///
     /// # Returns
     /// An `Option<String>` containing relevant information derived from the event, or `None` if no information is extracted.
-    async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus;
-
-    async fn process_block(
-        &self,
-        block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>;
+    async fn get_miner_data(&self, miner_ip: &str, reqwest_client: &Client) -> ProcessStatus;
 }
 
 /// Implementation of the `OracleFeeder` trait for `CyborgOracleFeeder`.
 #[async_trait]
 impl OracleFeeder for CyborgOracleFeeder {
-    async fn run_verify_proofs(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        // Check if we need to sync
-        if self.block_tracker.needs_sync().await? {
-            println!("Feeder needs to sync, processing missed blocks...");
-            let missed_blocks = self.block_tracker.get_missed_blocks().await?;
-
-            for block in missed_blocks {
-                println!("Processing missed block: {:?}", block.number());
-                match self.process_block(&block).await {
-                    Ok(_) => {
-                        self.block_tracker.update_last_block(block.number()).await?;
-                    }
-                    Err(e) => {
-                        eprintln!("Failed to process block {}: {}", block.number(), e);
-                        // Continue with next block instead of failing completely
-                        continue;
-                    }
-                }
-            }
-        }
-
-        // Subscribe to new blocks
-        let mut blocks = CLIENT
-            .get()
-            .ok_or("Failed to get client")?
-            .blocks()
-            .subscribe_finalized()
-            .await?;
-
-        while let Some(Ok(block)) = blocks.next().await {
-            println!("New block imported: {:?}", block.number());
-            self.process_block(&block).await?;
-            self.block_tracker.update_last_block(block.number()).await?;
-        }
-
-        Ok(())
-    }
-
     async fn run_check_miners(&self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         loop {
             println!("Running Oracle Feeder");
@@ -207,7 +144,10 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             sleep(random_delay).await;
 
-            self.collect_miner_data().await?;
+            if let Err(e) = self.collect_miner_data().await {
+                println!("Failed to collect miner data: {}. Retrying next cycle.", e);
+                continue;
+            }
 
             self.feed().await.unwrap_or_else(|e| {
                 println!("Failed to feed the oracle due to error: {e}. retrying in next cycle.")
@@ -228,134 +168,6 @@ impl OracleFeeder for CyborgOracleFeeder {
         }
     }
 
-    async fn verify_proof(
-        &self,
-        task_id: u64,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        // Get client
-        let client = match CLIENT.get() {
-            Some(c) => c,
-            None => {
-                eprintln!("Failed to get client");
-                return Err("Failed to get client".into());
-            }
-        };
-
-        // Get task from chain
-        let task_address = SubstrateApi::storage().task_management().tasks(task_id);
-        let task = client
-            .storage()
-            .at_latest()
-            .await?
-            .fetch(&task_address)
-            .await?;
-
-        let task = task.ok_or(Error::Custom("Requested task not found!".to_string()))?;
-
-        let TaskKind::NeuroZK(nzk_data) = task.task_kind else {
-            return Err("Task is not an NZK task!".into());
-        };
-
-        let proof = nzk_data.zk_proof.ok_or(Error::Custom(
-            "No ZK proof present for verification, nzk_data.zk_proof is none!".to_string(),
-        ))?;
-
-        let dir = tempdir()?;
-        let proof_path = dir.path().join("proof.json");
-        let vk_path = dir.path().join("vk.key");
-        let srs_path = dir.path().join("kzg.srs");
-        let settings_path = dir.path().join("settings.json");
-
-        write(&proof_path, proof.0)?;
-        write(&vk_path, nzk_data.zk_verifying_key.0)?;
-        write(&settings_path, nzk_data.zk_settings.0)?;
-
-        let _ = run(GetSrs {
-            srs_path: Some(srs_path.clone()),
-            settings_path: Some(settings_path.clone()),
-            logrows: None,
-            commitment: Some(Commitments::KZG),
-        })
-        .await?;
-
-        //TODO obv it's nasty that this returns a string, but ezkl verification options will change with next release (verification via bytearrray), so this isn't final anyway
-        let string_result = run(Verify {
-            settings_path: Some(settings_path),
-            proof_path: Some(proof_path),
-            vk_path: Some(vk_path),
-            srs_path: Some(srs_path),
-            reduced_srs: None,
-        })
-        .await?;
-
-        println!("Verification result: {}", string_result);
-
-        let bool_result = match string_result.as_str() {
-            "true" => true,
-            "false" => false,
-            _ => return Err("Verification failed".into()),
-        };
-
-        let result: (OracleKey, OracleValue) = (
-            OracleKey::NzkProofResult(task_id),
-            OracleValue::ZkProofResult(bool_result),
-        );
-
-        let result = vec![result];
-
-        let feed_oracle_tx = SubstrateApi::tx().oracle().feed_values(BoundedVec(result));
-
-        println!(
-            "Feed Oracle NeuroZk Parameters: {:?}",
-            feed_oracle_tx.call_data()
-        );
-
-        let keypair = load_cyborg_test_key()?;
-
-        let tx_progress = client
-            .tx()
-            .sign_and_submit_then_watch_default(&feed_oracle_tx, &keypair)
-            .await
-            .map_err(|e| {
-                eprintln!("Extrinsic submission failed: {:?}", e);
-                e
-            })?;
-
-        println!("Extrinsic submitted. Waiting for inclusion...");
-
-        let finalized = tx_progress.wait_for_finalized().await?;
-
-        println!("Extrinsic finalized in block: {:?}", finalized.block_hash());
-
-        let events = finalized.fetch_events().await?;
-
-        for evt in events.iter() {
-            match evt {
-                Ok(ev) => {
-                    if let Some(system_event) =
-                        ev.as_event::<SubstrateApi::system::events::ExtrinsicFailed>()?
-                    {
-                        println!("Extrinsic failed with error: {:?}", system_event);
-                        println!("Dispatch error: {:?}", system_event.dispatch_error);
-                        return Err("Extrinsic failed on chain".into());
-                    } else if ev
-                        .as_event::<SubstrateApi::system::events::ExtrinsicSuccess>()?
-                        .is_some()
-                    {
-                        println!("Extrinsic succeeded!");
-                        // Return success instead of the malformed match arm
-                        return Ok(());
-                    }
-                }
-                Err(e) => {
-                    println!("Error parsing event: {:?}", e);
-                }
-            }
-        }
-
-        Ok(())
-    }
-
     async fn collect_miner_data(&self) -> Result<(), subxt::Error> {
         let mut new_miner_data: Vec<(OracleKey, OracleValue)> = Vec::new();
 
@@ -363,16 +175,17 @@ impl OracleFeeder for CyborgOracleFeeder {
 
         let edge_miners_address = SubstrateApi::storage().edge_connect().edge_miners_iter();
 
-        let client = CLIENT.get().ok_or("Failed to get client")?;
+        let parachain_client = CLIENT.get().ok_or("Failed to get client")?;
+        let reqwest_client = Client::new();
 
-        let mut cloud_miners_query = client
+        let mut cloud_miners_query = parachain_client
             .storage()
             .at_latest()
             .await?
             .iter(cloud_miners_address)
             .await?;
 
-        let mut edge_miners_query = client
+        let mut edge_miners_query = parachain_client
             .storage()
             .at_latest()
             .await?
@@ -386,12 +199,12 @@ impl OracleFeeder for CyborgOracleFeeder {
 
             println!("Miner IP: {}", miner_ip);
 
-            let process_status = self.get_miner_data(&miner_ip).await;
+            let process_status = self.get_miner_data(&miner_ip, &reqwest_client).await;
 
             new_miner_data.push((
                 OracleKey::Miner(OracleMinerFormat {
                     id: miner.value.id,
-                    miner_type: MinerType::Edge,
+                    miner_type: MinerType::Cloud,
                 }),
                 OracleValue::MinerStatus(process_status),
             ));
@@ -400,9 +213,7 @@ impl OracleFeeder for CyborgOracleFeeder {
         while let Some(Ok(miner)) = edge_miners_query.next().await {
             let miner_ip = String::from_utf8_lossy(&miner.value.api.domain.0).to_string();
 
-            println!("Miner IP: {}", miner_ip);
-
-            let process_status = self.get_miner_data(&miner_ip).await;
+            let process_status = self.get_miner_data(&miner_ip, &reqwest_client).await;
 
             new_miner_data.push((
                 OracleKey::Miner(OracleMinerFormat {
@@ -420,45 +231,67 @@ impl OracleFeeder for CyborgOracleFeeder {
         Ok(())
     }
 
-    async fn get_miner_data(&self, miner_ip: &str) -> ProcessStatus {
+    async fn get_miner_data(&self, miner_ip: &str, reqwest_client: &Client) -> ProcessStatus {
         async fn process_response(
             response: reqwest::Response,
         ) -> Result<MinerHealthResponse, Box<dyn std::error::Error>> {
             let response_text = response.text().await?;
-            println!("Response text: {}", response_text);
             let miner_health_item = serde_json::from_str::<MinerHealthResponse>(&response_text)?;
-
             Ok(miner_health_item)
         }
 
-        let client = Client::new();
-        let response = client
-            .get(format!("{}/agent-health/check-health", miner_ip))
-            .timeout(Duration::from_secs(5))
-            .send()
-            .await;
+        let url_string = if miner_ip.starts_with("http://") || miner_ip.starts_with("https://") {
+            format!("{}:8080/check-health", miner_ip)
+        } else {
+            format!("http://{}:8080/check-health", miner_ip)
+        };
+
+        let url = match reqwest::Url::parse(&url_string) {
+            Ok(u) => u,
+            Err(e) => {
+                println!("Failed to parse URL: {}", e);
+                return ProcessStatus {
+                    online: false,
+                    available: false,
+                };
+            }
+        };
+
+        let request = match reqwest_client.get(url).build() {
+            Ok(req) => req,
+            Err(e) => {
+                println!("Failed to build request: {}", e);
+                println!("Error is builder: {}", e.is_builder());
+                return ProcessStatus {
+                    online: false,
+                    available: false,
+                };
+            }
+        };
+
+        let response = reqwest_client.execute(request).await;
 
         match response {
             Ok(response) => {
-                println!("Response: {:?}", response);
                 if let Ok(miner_health_item) = process_response(response).await {
-                    println!(
-                        "Miner with ip {} is online: {}",
-                        miner_ip, miner_health_item.is_active
-                    );
                     if miner_health_item.is_active {
+                        println!("Miner with ip {} is online.", miner_ip);
                         ProcessStatus {
                             online: true,
                             available: true,
                         }
                     } else {
+                        println!("Miner with ip {} is offline.", miner_ip);
                         ProcessStatus {
                             online: false,
                             available: false,
                         }
                     }
                 } else {
-                    println!("Miner with IP {} returned an error", miner_ip);
+                    println!(
+                        "Miner with IP {} returned an error while processing response",
+                        miner_ip
+                    );
                     ProcessStatus {
                         online: false,
                         available: false,
@@ -466,7 +299,16 @@ impl OracleFeeder for CyborgOracleFeeder {
                 }
             }
             Err(error) => {
-                println!("Miner with ip {} is not online. Error: {}", miner_ip, error);
+                println!("Miner with ip {} is not online.", miner_ip);
+                println!("Error type: {}", error);
+                println!("Is builder error: {}", error.is_builder());
+                println!("Is request error: {}", error.is_request());
+                println!("Is connect error: {}", error.is_connect());
+                println!("Is timeout error: {}", error.is_timeout());
+                if let Some(url) = error.url() {
+                    println!("Error URL: {}", url);
+                }
+
                 ProcessStatus {
                     online: false,
                     available: false,
@@ -529,42 +371,5 @@ impl OracleFeeder for CyborgOracleFeeder {
             log::warn!("No miner data available to feed.");
             Err("No miner data available to feed.".into())
         }
-    }
-
-    // Extract block processing logic to a separate method
-    async fn process_block(
-        &self,
-        block: &Block<PolkadotConfig, OnlineClient<PolkadotConfig>>,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let events = block.events().await?;
-
-        for event in events.iter() {
-            match event {
-                Ok(ev) => {
-                    match ev
-                        .as_event::<substrate_interface::api::neuro_zk::events::NzkProofSubmitted>()
-                    {
-                        Ok(Some(proof_event)) => {
-                            let task_id = proof_event.task_id;
-                            let submitting_miner = &proof_event.submitting_miner;
-
-                            println!(
-                                "Processing proof: Task ID: {:?}, Submitting Miner: {:?}",
-                                task_id, submitting_miner
-                            );
-
-                            self.verify_proof(task_id).await?;
-                        }
-                        Err(e) => {
-                            println!("Error decoding ProofSubmitted event: {:?}", e);
-                            return Err(Box::new(e));
-                        }
-                        _ => {} // Skip non-matching events
-                    }
-                }
-                Err(e) => eprintln!("Error decoding event: {:?}", e),
-            }
-        }
-        Ok(())
     }
 }

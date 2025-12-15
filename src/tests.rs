@@ -12,8 +12,8 @@ mod test {
         tx_queue::{Transaction, TxOutput},
     };
     use async_trait::async_trait;
+    use reqwest::Client;
     use std::sync::Arc;
-    use subxt::{blocks::Block, OnlineClient, PolkadotConfig};
     use tempfile::tempdir;
     use tokio::sync::Mutex;
 
@@ -272,6 +272,8 @@ mod test {
                 current_miners_data: Mutex::new(None),
             }),
         };
+
+        let client = Client::new();
 
         // Test collect_miner_data
         feeder.collect_miner_data().await.unwrap();
