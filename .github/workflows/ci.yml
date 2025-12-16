@@ -205,6 +205,16 @@ jobs:
         echo "📦 Installing binary..."
         sudo install -m 755 -o runner -g runner cyborg-oracle-feeder /usr/local/bin/cyborg-oracle-feeder-staging
         
+        # Test binary with arguments
+        echo "🔍 Testing binary with arguments..."
+        if timeout 5s /usr/local/bin/cyborg-oracle-feeder-staging start \
+          --parachain-url "$PARACHAIN_URL" \
+          --account-seed "$ACCOUNT_SEED" --help > /dev/null 2>&1; then
+          echo "✅ Binary accepts arguments correctly"
+        else
+          echo "⚠️  Binary test with arguments had issues"
+        fi
+        
         # Ensure data directory exists
         echo "📁 Setting up data directory..."
         sudo mkdir -p /home/runner/.local/share/cyborg-oracle-feeder
@@ -226,9 +236,9 @@ jobs:
         Environment="RUST_LOG=info"
         Environment="PARACHAIN_URL=$PARACHAIN_URL"
         Environment="ACCOUNT_SEED=$ACCOUNT_SEED"
-        ExecStart=/usr/local/bin/cyborg-oracle-feeder-staging start \
-          --parachain-url "\$PARACHAIN_URL" \
-          --account-seed "\$ACCOUNT_SEED"
+        ExecStart=/usr/local/bin/cyborg-oracle-feeder-staging start \\
+          --parachain-url \$PARACHAIN_URL \\
+          --account-seed \$ACCOUNT_SEED
         Restart=always
         RestartSec=10
         StandardOutput=journal
@@ -244,6 +254,10 @@ jobs:
         [Install]
         WantedBy=multi-user.target
         EOF
+        
+        # Debug: Show what's being set
+        echo "🔍 Environment variables set:"
+        echo "PARACHAIN_URL=$PARACHAIN_URL"
         
         # Enable and start service
         echo "🔄 Reloading systemd..."
