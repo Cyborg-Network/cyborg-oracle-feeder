@@ -173,13 +173,13 @@ jobs:
       run: |
         echo "🔍 Checking if parachain is running on VPS..."
         
-        # Check if port 9944 is listening (assuming default parachain port)
-        if ss -tulpn | grep -q ":9944"; then
-          echo "✅ Parachain is running on port 9944"
+        # Check if port 9988 is listening (assuming default parachain port)
+        if ss -tulpn | grep -q ":9988"; then
+          echo "✅ Parachain is running on port 9988"
         else
-          echo "❌ Parachain NOT detected on port 9944"
+          echo "❌ Parachain NOT detected on port 9988"
           echo "Please ensure parachain is running on this VPS with:"
-          echo "  ./cyborg-node --dev --ws-port 9944"
+          echo "  ./cyborg-node --dev --ws-port 9988"
           exit 1
         fi
     
