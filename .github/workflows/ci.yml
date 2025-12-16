@@ -190,6 +190,20 @@ jobs:
       run: |
         echo "🚀 Deploying oracle feeder to VPS..."
         
+        # Validate required environment variables
+        if [ -z "$PARACHAIN_URL" ]; then
+          echo "❌ Error: PARACHAIN_URL is not set"
+          exit 1
+        fi
+        
+        if [ -z "$ACCOUNT_SEED" ]; then
+          echo "❌ Error: ACCOUNT_SEED is not set"
+          exit 1
+        fi
+        
+        echo "✅ Environment variables validated"
+        echo "   PARACHAIN_URL: $PARACHAIN_URL"
+        
         # Make binary executable
         chmod +x cyborg-oracle-feeder
         
@@ -205,24 +219,14 @@ jobs:
         echo "📦 Installing binary..."
         sudo install -m 755 -o runner -g runner cyborg-oracle-feeder /usr/local/bin/cyborg-oracle-feeder-staging
         
-        # Test binary with arguments
-        echo "🔍 Testing binary with arguments..."
-        if timeout 5s /usr/local/bin/cyborg-oracle-feeder-staging start \
-          --parachain-url "$PARACHAIN_URL" \
-          --account-seed "$ACCOUNT_SEED" --help > /dev/null 2>&1; then
-          echo "✅ Binary accepts arguments correctly"
-        else
-          echo "⚠️  Binary test with arguments had issues"
-        fi
-        
         # Ensure data directory exists
         echo "📁 Setting up data directory..."
         sudo mkdir -p /home/runner/.local/share/cyborg-oracle-feeder
         sudo chown -R runner:runner /home/runner/.local/share/cyborg-oracle-feeder
         
-        # Create systemd service
+        # Create systemd service with properly embedded values
         echo "⚙️  Creating systemd service..."
-        sudo tee /etc/systemd/system/oracle-feeder-staging.service > /dev/null << EOF
+        cat << 'SERVICEEOF' | sudo tee /etc/systemd/system/oracle-feeder-staging.service > /dev/null
         [Unit]
         Description=Cyborg Oracle Feeder (Staging on VPS)
         After=network.target
@@ -234,11 +238,7 @@ jobs:
         Group=runner
         WorkingDirectory=/home/runner
         Environment="RUST_LOG=info"
-        Environment="PARACHAIN_URL=$PARACHAIN_URL"
-        Environment="ACCOUNT_SEED=$ACCOUNT_SEED"
-        ExecStart=/usr/local/bin/cyborg-oracle-feeder-staging start \\
-          --parachain-url \$PARACHAIN_URL \\
-          --account-seed \$ACCOUNT_SEED
+        ExecStart=/usr/local/bin/cyborg-oracle-feeder-staging start --parachain-url PARACHAIN_URL_PLACEHOLDER --account-seed ACCOUNT_SEED_PLACEHOLDER
         Restart=always
         RestartSec=10
         StandardOutput=journal
@@ -253,11 +253,22 @@ jobs:
         
         [Install]
         WantedBy=multi-user.target
-        EOF
+        SERVICEEOF
         
-        # Debug: Show what's being set
-        echo "🔍 Environment variables set:"
-        echo "PARACHAIN_URL=$PARACHAIN_URL"
+        # Replace placeholders with actual values
+        sudo sed -i "s|PARACHAIN_URL_PLACEHOLDER|${PARACHAIN_URL}|g" /etc/systemd/system/oracle-feeder-staging.service
+        sudo sed -i "s|ACCOUNT_SEED_PLACEHOLDER|${ACCOUNT_SEED}|g" /etc/systemd/system/oracle-feeder-staging.service
+        
+        # Verify the service file was created correctly
+        echo "🔍 Verifying service file..."
+        if grep -q "parachain-url ${PARACHAIN_URL}" /etc/systemd/system/oracle-feeder-staging.service; then
+          echo "✅ Service file contains correct PARACHAIN_URL"
+        else
+          echo "❌ Service file verification failed"
+          echo "Service file content:"
+          sudo cat /etc/systemd/system/oracle-feeder-staging.service
+          exit 1
+        fi
         
         # Enable and start service
         echo "🔄 Reloading systemd..."
@@ -353,7 +364,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📊 Deployment Details:" >> $GITHUB_STEP_SUMMARY
         echo "- **VPS**: Self-hosted runner with parachain" >> $GITHUB_STEP_SUMMARY
-        echo "- **Parachain**: Running locally on VPS (ws://localhost:9944)" >> $GITHUB_STEP_SUMMARY
+        echo "- **Parachain**: Running locally on VPS (ws://localhost:9988)" >> $GITHUB_STEP_SUMMARY
         echo "- **Oracle Feeder**: Deployed as systemd service" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**This PR has been fully tested in a production-like environment and is ready for merge!**" >> $GITHUB_STEP_SUMMARY
