@@ -20,7 +20,10 @@ mod cli;
 mod config;
 mod error;
 mod feeder;
+mod integration_advanced;
+mod integration_mock;
 mod substrate_interface;
+mod test_harness;
 mod tx_queue;
 
 #[cfg(test)]

@@ -15,7 +15,7 @@ pub struct AccountKeypair(SR25519Keypair);
 /// This builder allows for flexible configuration of the instance,
 /// including setting the parachain URL and the oracle feeder account keypair.
 pub struct CyborgOracleFeederBuilder<Keypair> {
-    keypair: Keypair,
+    pub keypair: Keypair,
     shared_state: SharedState,
     data_dir: PathBuf,
 }

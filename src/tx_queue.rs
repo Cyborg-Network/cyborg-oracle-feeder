@@ -39,7 +39,7 @@ impl Transaction {
         }
     }
 
-    async fn execute(&self) -> Result<TxOutput> {
+    pub async fn execute(&self) -> Result<TxOutput> {
         (self.executor)().await
     }
 
@@ -58,6 +58,12 @@ pub struct TransactionQueue {
 }
 
 pub static TRANSACTION_QUEUE: OnceCell<TransactionQueue> = OnceCell::new();
+
+impl Default for TransactionQueue {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl TransactionQueue {
     pub fn new() -> Self {
@@ -96,10 +102,17 @@ impl TransactionQueue {
         let processing_flag = Arc::clone(&self.processing);
 
         tokio::spawn(async move {
-            loop {
+            while processing_flag.load(Ordering::SeqCst) {
                 let tx_opt = {
                     let mut queue = inner.lock().await;
                     log::debug!("Oracle feeder transaction queue size: {}", queue.len());
+
+                    if queue.is_empty() {
+                        // If queue is empty, we're done processing
+                        processing_flag.store(false, Ordering::SeqCst);
+                        break;
+                    }
+
                     queue.pop_front()
                 };
 
@@ -130,6 +143,7 @@ impl TransactionQueue {
                         }
                     },
                     None => {
+                        // This shouldn't happen since we check is_empty above, but just in case
                         processing_flag.store(false, Ordering::SeqCst);
                         log::debug!("Oracle feeder transaction queue is empty");
                         break;
